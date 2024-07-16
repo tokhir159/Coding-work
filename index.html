@@ -30,6 +30,8 @@
 
     class Player extends Phaser.Physics.Arcade.Sprite
     {
+        totalJumps = 2;
+        currentJumps = 0;
         constructor(scene, x, y)
         {
             super(scene, x, y, 'player');
@@ -40,10 +42,23 @@
             this.setGravityY(3000); //We will set gravity *per object* rather than for the scene!
         }
     }
+        
+    class Enemy extends Phaser.Physics.Arcade.Sprite 
+    {
+        constructor(scene, x, y) 
+        {
+            super(scene, x, y, 'enemy');
+            scene.add.existing(this);
+            scene.physics.add.existing(this);
+            this.setScale(2);
+            this.setCollideWorldBounds(true);
+            this.setGravityY(3000); 
+        }
+    }
 
     class Bullet extends Phaser.Physics.Arcade.Sprite
         {
-            speed = 600; // speed of bullet
+            speed = 800; // speed of bullet
             constructor (scene)
             {
                 super(scene, 0, 0, 'bullet');
@@ -75,6 +90,7 @@
     var platforms;
     var collisionplatform = [];
     var player;
+    var enemies;
 
     //Keyboard controls
     var cursors;
@@ -87,6 +103,7 @@
         this.load.image('background', 'FIRSTLEVEL.png');
         this.load.image('bullet', 'bullet.png');
         this.load.image('player', 'assets/wabbit.png');
+        this.load.image('enemy', 'assets/wabbit.png');
     }
 
     function create()
@@ -100,6 +117,12 @@
        this.physics.add.collider(player, platforms);      
 
        this.physics.world.setBoundsCollision(true, true, true, true); 
+        
+        // Create enemies group
+        enemies = this.physics.add.group();
+
+        // Create Enemies
+        createEnemies.call(this, 10);
 
        //Set up user input
        cursors = this.input.keyboard.createCursorKeys();
@@ -165,6 +188,17 @@
             player.setVelocityX(400);
         }
         
+        if (player.body.touching.down) 
+        {
+            player.currentJumps = 0;
+        }
+        
+        // Enemy follow player
+        enemies.children.iterate(function (enemy) 
+        {
+            this.physics.moveToObject(enemy, player, 100);
+        }, this);
+        
     }
     function bulletgone(bullet, platform)
     {
@@ -173,11 +207,28 @@
     }
     function jump(event)
     {
-        console.log("JUMP CALLED")
-        if (player.body.touching.down)
+        if (player.body.touching.down) 
         {
-            console.log("PLAYER ON GROUND")
+            // If the player is on the ground, the player can jump
             player.setVelocityY(-1100);
+            player.currentJumps++;
+        } 
+        else if (player.currentJumps < player.totalJumps) 
+        {
+            // If the player is not on the ground but has an available air jump, use that jump
+            player.setVelocityY(-800);
+            player.currentJumps++;
+        }
+    }
+    
+    function createEnemies(number) {
+        // Create Enemy
+        for (let i = 0; i < number; i++) {
+            let enemy = new Enemy(this, Phaser.Math.Between(100, 1100), Phaser.Math.Between(100, 600));
+            enemies.add(enemy);
+
+            // Collide enemies with platforms
+            this.physics.add.collider(enemy, platforms);
         }
     }
 
