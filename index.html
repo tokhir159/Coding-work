@@ -86,6 +86,7 @@
     {
         this.load.image('background', 'FIRSTLEVEL.png');
         this.load.image('bullet', 'bullet.png');
+        this.load.image('player', 'assets/wabbit.png');
     }
 
     function create()
@@ -148,7 +149,7 @@
     function update()
     {
         //Player will not move in the x-axis unless a movement key is being pressed
-        player.setVelocityX(0);
+        player.setVelocityX(5);
 
         //Player has "drag" on the x-axis meaning they slide a bit after an input
         player.setDragX(1000);
