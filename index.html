@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
+
+</head>
+
+<body>
+
+    <script>
+
+    var config = {
+        type: Phaser.AUTO,
+        width: 1445,
+        height: 866,
+        physics: {
+            default: 'arcade',
+        },
+
+        scene: {
+            preload: preload,
+            create: create,
+            update: update,
+        }
+
+    };
+
+    class Player extends Phaser.Physics.Arcade.Sprite
+    {
+        constructor(scene, x, y)
+        {
+            super(scene, x, y, 'player');
+            scene.add.existing(this);
+            scene.physics.add.existing(this);
+            this.setScale(2);
+            this.setCollideWorldBounds(true);
+            this.setGravityY(3000); //We will set gravity *per object* rather than for the scene!
+        }
+    }
+
+    class Bullet extends Phaser.Physics.Arcade.Sprite
+        {
+            speed = 500; // speed of bullet
+            constructor (scene)
+            {
+                super(scene, 0, 0, 'bullet');
+                scene.add.existing(this);
+                scene.physics.add.existing(this)
+                //setCollideWorldBounds(true, true, true, true);
+                //scene.physics.world.on('worldbounds', function (body, up, down, left, right) { console.log('object left world bounds'); });
+
+            }
+
+            fire (x, y)
+            {
+                this.setPosition(x, y);         // setting to the player's position
+                this.setVelocityX(this.speed);  // moving the bullet
+
+                // if bullet is out of bounds, despawn
+                if (this.x > 1445)
+                {
+                    console.log("hits bounds");
+                    this.disableBody(true, true);
+                }
+            }
+    }
+        
+
+    var game = new Phaser.Game(config);
+
+    //Game Objects
+    var platforms;
+    var collisionplatform = [];
+    var player;
+
+    //Keyboard controls
+    var cursors;
+    var keys;
+    var space;
+    //var bullets = [];
+
+    function preload()
+    {
+        this.load.image('background', 'FIRSTLEVEL.png');
+        this.load.image('bullet', 'bullet.png');
+    }
+
+    function create()
+    {
+        //Set the background origin to be at (0, 0) or top left corner of the image rather than the center of the image asset
+       let background = this.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background').setOrigin(0, 0);
+
+       //Create the platforms and the player character set to collide with the platforms
+       createPlatforms(this);
+       player = new Player(this, 400, 400);
+       this.physics.add.collider(player, platforms);      
+
+       this.physics.world.setBoundsCollision(true, true, true, true); 
+
+       //Set up user input
+       cursors = this.input.keyboard.createCursorKeys();
+       keys = this.input.keyboard.addKeys('A, D');
+       space = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+       space.on('down', jump); //calls jump function when space is pressed
+        this.input.on('pointerdown', function (pointer)
+        {
+
+            const bullet = new Bullet(this);
+            //bullets.push(bullet);
+
+            if (bullet)
+            {
+                bullet.fire(player.x, player.y);
+                this.physics.add.overlap(bullet, collisionplatform, bulletgone, null, this); 
+                // enemies, etc.
+            }
+
+        }, this);
+        
+        this.bullets = this.add.group({
+            classType: Bullet,
+            maxSize: 30,
+            runChildUpdate: true
+            
+
+        });
+        
+        
+        
+    }
+
+    function createPlatforms(scene)
+    {
+        platforms = scene.physics.add.staticGroup();
+
+        //basePlatform is the floor of the game
+        let basePlatform = platforms.create(0, game.scale.height, 'platform');
+        basePlatform.setScale(1000, 1).refreshBody(); //scales the base platform in the x axis to cover the entire floor
+
+        let newPlatform = platforms.create(1090, 650, 'platform'); //creates the upper left platform
+        collisionplatform.push(newPlatform);
+        console.log(collisionplatform)
+    }
+
+    function update()
+    {
+        //Player will not move in the x-axis unless a movement key is being pressed
+        player.setVelocityX(0);
+
+        //Player has "drag" on the x-axis meaning they slide a bit after an input
+        player.setDragX(1000);
+
+        //Handle player movements
+        if (cursors.left.isDown || keys.A.isDown)
+        {
+            player.setVelocityX(-400);
+        }
+
+        if (cursors.right.isDown || keys.D.isDown)
+        {
+            player.setVelocityX(400);
+        }
+        
+    }
+    function bulletgone(bullet, platform)
+    {
+        bullet.disableBody(true,true);
+        console.log("bullet hit")
+    }
+    function jump(event)
+    {
+        console.log("JUMP CALLED")
+        if (player.body.touching.down)
+        {
+            console.log("PLAYER ON GROUND")
+            player.setVelocityY(-1100);
+        }
+    }
+
+    </script>
+
+</body>
+
+</html>
