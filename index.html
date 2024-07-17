@@ -70,17 +70,26 @@
             }
 
             fire (x, y)
-            {
-                this.setPosition(x, y);         // setting to the player's position
-                this.setVelocityX(this.speed);  // moving the bullet
+        	{
+   	 
+            	this.setPosition(x, y);   
+                
+            	let direction = new Phaser.Math.Vector2(game.input.mousePointer.x - x, game.input.mousePointer.y - y);// saving bullet path as vector
+            	direction.normalize(); // normalize so we can add magnitude
+                var speedBullet = 1800;
+            	this.setVelocity(direction.x * speedBullet, direction.y * speedBullet); //moves bullet
+            	
+            	var angle = (Phaser.Math.Angle.Between(x, y, game.input.mousePointer.x, game.input.mousePointer.y)*180/(Phaser.Math.PI2/2))
+            	this.setAngle(angle) //rotates bullet sprite
 
-                // if bullet is out of bounds, despawn
-                if (this.x > 1445)
-                {
-                    console.log("hits bounds");
-                    this.disableBody(true, true);
-                }
-            }
+            	// if bullet is out of bounds, despawn
+            	if (this.x > 1445 || this.x < 0 || this.y < 0 || this.y > 866)
+            	{
+                	console.log("hits bounds");
+                	this.disableBody(true, true);
+            	}
+        	}
+
     }
         
 
