@@ -32,11 +32,7 @@
     {
         totalJumps = 2;
         currentJumps = 0;
-<<<<<<< HEAD
-        playerHP = 100
-=======
         playerHP = 100;
->>>>>>> 004a1e48770efe7c738561441b461aa4dcd8ec15
         constructor(scene, x, y)
         {
             super(scene, x, y, 'player');
@@ -48,19 +44,26 @@
         }
     }
         
-    class Enemy extends Phaser.Physics.Arcade.Sprite 
+    class Enemy extends Phaser.Physics.Arcade.Sprite
     {
         enemyHP = 30;
-        constructor(scene, x, y) 
+        constructor(scene, x, y, spritesheet, animation) 
         {
-            super(scene, x, y, 'enemy');
+            super(scene, x, y, spritesheet, animation);
             scene.add.existing(this);
             scene.physics.add.existing(this);
-            this.setScale(2);
+            this.setScale(0.8);
             this.setCollideWorldBounds(true);
             this.setGravityY(3000); 
+            this.play(animation);
+        }
+
+        addTween(scene, xDist, yDist, time) 
+        {
+            scene.tweens.add({ targets: this, x: xDist, y: yDist, duration: time, ease: 'Sine.easeInOut', repeat: -1, yoyo: true });
         }
     }
+    
     
     class BatSwing extends Phaser.Physics.Arcade.Sprite
         {
@@ -81,12 +84,8 @@
 
     class Bullet extends Phaser.Physics.Arcade.Sprite
     {
-        speed = 800; // speed of bullet
-        constructor (scene)
+        constructor (scene, enemyBullet)
         {
-<<<<<<< HEAD
-            constructor (scene, enemyBullet)
-            {
                 super(scene, 0, 0, 'bullet');
                 scene.add.existing(this);
                 scene.physics.add.existing(this)
@@ -96,10 +95,10 @@
                 //setCollideWorldBounds(true, true, true, true);
                 //scene.physics.world.on('worldbounds', function (body, up, down, left, right) { console.log('object left world bounds'); });
 
-            }
-
-            fire (x, y)
-        	{
+        }
+            
+        fire (x, y)
+        {
    	 
             	this.setPosition(x, y);   
                 
@@ -119,30 +118,7 @@
                 	console.log("hits bounds");
                 	this.disableBody(true, true);
             	}
-        	}
-
-=======
-            super(scene, 0, 0, 'bullet');
-            scene.add.existing(this);
-            scene.physics.add.existing(this)
-            //setCollideWorldBounds(true, true, true, true);
-            //scene.physics.world.on('worldbounds', function (body, up, down, left, right) { console.log('object left world bounds'); });
-
         }
-
-        fire (x, y)
-        {
-            this.setPosition(x, y);         // setting to the player's position
-            this.setVelocityX(this.speed);  // moving the bullet
-
-            // if bullet is out of bounds, despawn
-            if (this.x > 1445)
-            {
-                console.log("hits bounds");
-                this.disableBody(true, true);
-            }
-        }
->>>>>>> 004a1e48770efe7c738561441b461aa4dcd8ec15
     }
         
 
@@ -187,12 +163,12 @@
         enemies = this.physics.add.group();
 
         // Create Enemies
+        this.anims.create({key: 'sideEnemy', frames: this.anims.generateFrameNames('sideEnemy', {prefix: 'sideEnemy', end: 4, zeroPad: 2}), repeat: -1, frameRate: 5});
+       //let sideEnemy = new Enemy(this, 700, 300, 'sideEnemy', 'sideEnemy');
         createEnemies.call(this, 10);
         this.physics.add.collider(enemies);
 
-       this.anims.create({key: 'sideEnemy', frames: this.anims.generateFrameNames('sideEnemy', {prefix: 'sideEnemy', end: 4, zeroPad: 2}), repeat: -1, frameRate: 5});
-       let sideEnemy = new Enemy(this, 700, 300, 'sideEnemy', 'sideEnemy');
-       enemies.push(sideEnemy);
+       //enemies.push(sideEnemy);
        //Set up user input
        cursors = this.input.keyboard.createCursorKeys();
        keys = this.input.keyboard.addKeys('A, D');
@@ -325,7 +301,7 @@
         // Create Enemy
         for (let i = 0; i < number; i++) 
         {
-            let enemy = new Enemy(this, Phaser.Math.Between(100, 1100), Phaser.Math.Between(100, 600));
+            let enemy = new Enemy(this, Phaser.Math.Between(100, 1100), Phaser.Math.Between(100, 600), 'enemy', 'sideEnemy');
             enemies.add(enemy);
 
             // Collide enemies with platforms
@@ -348,23 +324,6 @@
         }
     }
         
-    class Enemy extends Phaser.Physics.Arcade.Sprite
-    {
-        constructor(scene, x, y, spritesheet, animation) 
-        {
-            super(scene, x, y, spritesheet, animation);
-            scene.add.existing(this);
-            scene.physics.add.existing(this);
-            this.setScale(0.8);
-            this.play(animation);
-        }
-
-        addTween(scene, xDist, yDist, time) 
-        {
-            scene.tweens.add({ targets: this, x: xDist, y: yDist, duration: time, ease: 'Sine.easeInOut', repeat: -1, yoyo: true });
-        }
-    }
-    
 
     </script>
 
