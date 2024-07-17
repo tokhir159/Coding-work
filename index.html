@@ -75,6 +75,8 @@
     var platforms;
     var collisionplatform = [];
     var player;
+    var sideEnemy;
+    var enemies = [];
 
     //Keyboard controls
     var cursors;
@@ -86,6 +88,7 @@
     {
         this.load.image('background', 'FIRSTLEVEL.png');
         this.load.image('bullet', 'bullet.png');
+        this.load.atlas('sideEnemy', 'sideEnemy.png', 'sideEnemy.json');
     }
 
     function create()
@@ -100,6 +103,9 @@
 
        this.physics.world.setBoundsCollision(true, true, true, true); 
 
+       this.anims.create({key: 'sideEnemy', frames: this.anims.generateFrameNames('sideEnemy', {prefix: 'sideEnemy', end: 4, zeroPad: 2}), repeat: -1, frameRate: 5});
+       let sideEnemy = new Enemy(this, 700, 300, 'sideEnemy', 'sideEnemy');
+       enemies.push(sideEnemy);
        //Set up user input
        cursors = this.input.keyboard.createCursorKeys();
        keys = this.input.keyboard.addKeys('A, D');
@@ -179,6 +185,24 @@
             player.setVelocityY(-1100);
         }
     }
+        
+    class Enemy extends Phaser.Physics.Arcade.Sprite
+    {
+        constructor(scene, x, y, spritesheet, animation) 
+        {
+            super(scene, x, y, spritesheet, animation);
+            scene.add.existing(this);
+            scene.physics.add.existing(this);
+            this.setScale(0.8);
+            this.play(animation);
+        }
+
+        addTween(scene, xDist, yDist, time) 
+        {
+            scene.tweens.add({ targets: this, x: xDist, y: yDist, duration: time, ease: 'Sine.easeInOut', repeat: -1, yoyo: true });
+        }
+    }
+    
 
     </script>
 
