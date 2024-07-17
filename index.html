@@ -30,6 +30,8 @@
 
     class Player extends Phaser.Physics.Arcade.Sprite
     {
+        totalJumps = 2;
+        currentJumps = 0;
         constructor(scene, x, y)
         {
             super(scene, x, y, 'player');
@@ -40,10 +42,24 @@
             this.setGravityY(3000); //We will set gravity *per object* rather than for the scene!
         }
     }
+        
+    class Enemy extends Phaser.Physics.Arcade.Sprite 
+    {
+        enemyHP = 30;
+        constructor(scene, x, y) 
+        {
+            super(scene, x, y, 'enemy');
+            scene.add.existing(this);
+            scene.physics.add.existing(this);
+            this.setScale(2);
+            this.setCollideWorldBounds(true);
+            this.setGravityY(3000); 
+        }
+    }
 
     class Bullet extends Phaser.Physics.Arcade.Sprite
         {
-            speed = 500; // speed of bullet
+            speed = 800; // speed of bullet
             constructor (scene)
             {
                 super(scene, 0, 0, 'bullet');
@@ -89,6 +105,9 @@
         this.load.image('background', 'FIRSTLEVEL.png');
         this.load.image('bullet', 'bullet.png');
         this.load.atlas('sideEnemy', 'sideEnemy.png', 'sideEnemy.json');
+        this.load.image('player', 'assets/wabbit.png');
+        this.load.image('enemy', 'assets/wabbit.png');
+        this.load.image('platform', 'assets/platform.png');
     }
 
     function create()
@@ -102,6 +121,12 @@
        this.physics.add.collider(player, platforms);      
 
        this.physics.world.setBoundsCollision(true, true, true, true); 
+        
+        // Create enemies group
+        enemies = this.physics.add.group();
+
+        // Create Enemies
+        createEnemies.call(this, 10);
 
        this.anims.create({key: 'sideEnemy', frames: this.anims.generateFrameNames('sideEnemy', {prefix: 'sideEnemy', end: 4, zeroPad: 2}), repeat: -1, frameRate: 5});
        let sideEnemy = new Enemy(this, 700, 300, 'sideEnemy', 'sideEnemy');
@@ -122,6 +147,7 @@
                 bullet.fire(player.x, player.y);
                 this.physics.add.overlap(bullet, collisionplatform, bulletgone, null, this); 
                 // enemies, etc.
+                this.physics.add.overlap(bullet, enemies, dealDamageToEnemies, null, this); 
             }
 
         }, this);
@@ -154,7 +180,7 @@
     function update()
     {
         //Player will not move in the x-axis unless a movement key is being pressed
-        player.setVelocityX(0);
+        player.setVelocityX(5);
 
         //Player has "drag" on the x-axis meaning they slide a bit after an input
         player.setDragX(1000);
@@ -170,6 +196,28 @@
             player.setVelocityX(400);
         }
         
+        if (player.body.touching.down) 
+        {
+            player.currentJumps = 0;
+        }
+        
+        // Enemy follow player
+        enemies.children.iterate(function (enemy) 
+        {
+            if (enemy.body.touching.down) 
+            {
+                if (player.x < enemy.x) 
+                {
+                    enemy.setVelocityX(-100);
+                } 
+                else if (player.x > enemy.x) 
+                {
+                    enemy.setVelocityX(100);
+                }
+            }
+        });
+    
+        
     }
     function bulletgone(bullet, platform)
     {
@@ -178,11 +226,43 @@
     }
     function jump(event)
     {
-        console.log("JUMP CALLED")
-        if (player.body.touching.down)
+        if (player.body.touching.down) 
         {
-            console.log("PLAYER ON GROUND")
+            // If the player is on the ground, the player can jump
             player.setVelocityY(-1100);
+            player.currentJumps++;
+        } 
+        else if (player.currentJumps < player.totalJumps) 
+        {
+            // If the player is not on the ground but has an available air jump, use that jump
+            player.setVelocityY(-800);
+            player.currentJumps++;
+        }
+    }
+    
+    function createEnemies(number) 
+    {
+        // Create Enemy
+        for (let i = 0; i < number; i++) 
+        {
+            let enemy = new Enemy(this, Phaser.Math.Between(100, 1100), Phaser.Math.Between(100, 600));
+            enemies.add(enemy);
+
+            // Collide enemies with platforms
+            this.physics.add.collider(enemy, platforms);
+            enemy.setGravityY(3000);
+            
+        }
+    }
+    function dealDamageToEnemies(bullet, enemy)
+    {
+        bullet.disableBody(true,true);
+        console.log("enemy damaged");
+        enemy.enemyHP -= 10;
+        if(enemy.enemyHP <= 0)
+        {
+            enemy.disableBody(true,true);
+            console.log("enemy defeated")
         }
     }
         
