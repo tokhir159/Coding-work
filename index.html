@@ -32,7 +32,11 @@
     {
         totalJumps = 2;
         currentJumps = 0;
+<<<<<<< HEAD
         playerHP = 100
+=======
+        playerHP = 100;
+>>>>>>> 004a1e48770efe7c738561441b461aa4dcd8ec15
         constructor(scene, x, y)
         {
             super(scene, x, y, 'player');
@@ -76,7 +80,11 @@
         
 
     class Bullet extends Phaser.Physics.Arcade.Sprite
+    {
+        speed = 800; // speed of bullet
+        constructor (scene)
         {
+<<<<<<< HEAD
             constructor (scene, enemyBullet)
             {
                 super(scene, 0, 0, 'bullet');
@@ -113,6 +121,28 @@
             	}
         	}
 
+=======
+            super(scene, 0, 0, 'bullet');
+            scene.add.existing(this);
+            scene.physics.add.existing(this)
+            //setCollideWorldBounds(true, true, true, true);
+            //scene.physics.world.on('worldbounds', function (body, up, down, left, right) { console.log('object left world bounds'); });
+
+        }
+
+        fire (x, y)
+        {
+            this.setPosition(x, y);         // setting to the player's position
+            this.setVelocityX(this.speed);  // moving the bullet
+
+            // if bullet is out of bounds, despawn
+            if (this.x > 1445)
+            {
+                console.log("hits bounds");
+                this.disableBody(true, true);
+            }
+        }
+>>>>>>> 004a1e48770efe7c738561441b461aa4dcd8ec15
     }
         
 
@@ -158,6 +188,7 @@
 
         // Create Enemies
         createEnemies.call(this, 10);
+        this.physics.add.collider(enemies);
 
        this.anims.create({key: 'sideEnemy', frames: this.anims.generateFrameNames('sideEnemy', {prefix: 'sideEnemy', end: 4, zeroPad: 2}), repeat: -1, frameRate: 5});
        let sideEnemy = new Enemy(this, 700, 300, 'sideEnemy', 'sideEnemy');
@@ -247,17 +278,25 @@
         {
             if (enemy.body.touching.down) 
             {
-                if (player.x < enemy.x) 
+                if(Math.abs(enemy.x - player.x) <= 200 && Math.abs(enemy.y - player.y) <= 200)
                 {
-                    enemy.setVelocityX(-100);
-                } 
-                else if (player.x > enemy.x) 
+                    if (player.x < enemy.x) 
+                    {
+                        enemy.setVelocityX(-100);
+                    } 
+                    else if (player.x > enemy.x) 
+                    {
+                        enemy.setVelocityX(100);
+                    }
+                }
+                else
                 {
-                    enemy.setVelocityX(100);
+                    enemy.setVelocityX(0);
                 }
             }
         });
-    
+        
+        //live separation to make enemies not stack
         
     }
     function bulletgone(bullet, platform)
@@ -292,8 +331,10 @@
             // Collide enemies with platforms
             this.physics.add.collider(enemy, platforms);
             enemy.setGravityY(3000);
-            
+            enemy.setPushable(true);
+            //enemy.setBounce(1);
         }
+
     }
     function dealDamageToEnemies(bullet, enemy)
     {
