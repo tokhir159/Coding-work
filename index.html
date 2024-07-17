@@ -32,6 +32,7 @@
     {
         totalJumps = 2;
         currentJumps = 0;
+        playerHP = 100;
         constructor(scene, x, y)
         {
             super(scene, x, y, 'player');
@@ -58,30 +59,30 @@
     }
 
     class Bullet extends Phaser.Physics.Arcade.Sprite
+    {
+        speed = 800; // speed of bullet
+        constructor (scene)
         {
-            speed = 800; // speed of bullet
-            constructor (scene)
+            super(scene, 0, 0, 'bullet');
+            scene.add.existing(this);
+            scene.physics.add.existing(this)
+            //setCollideWorldBounds(true, true, true, true);
+            //scene.physics.world.on('worldbounds', function (body, up, down, left, right) { console.log('object left world bounds'); });
+
+        }
+
+        fire (x, y)
+        {
+            this.setPosition(x, y);         // setting to the player's position
+            this.setVelocityX(this.speed);  // moving the bullet
+
+            // if bullet is out of bounds, despawn
+            if (this.x > 1445)
             {
-                super(scene, 0, 0, 'bullet');
-                scene.add.existing(this);
-                scene.physics.add.existing(this)
-                //setCollideWorldBounds(true, true, true, true);
-                //scene.physics.world.on('worldbounds', function (body, up, down, left, right) { console.log('object left world bounds'); });
-
+                console.log("hits bounds");
+                this.disableBody(true, true);
             }
-
-            fire (x, y)
-            {
-                this.setPosition(x, y);         // setting to the player's position
-                this.setVelocityX(this.speed);  // moving the bullet
-
-                // if bullet is out of bounds, despawn
-                if (this.x > 1445)
-                {
-                    console.log("hits bounds");
-                    this.disableBody(true, true);
-                }
-            }
+        }
     }
         
 
@@ -125,6 +126,7 @@
 
         // Create Enemies
         createEnemies.call(this, 10);
+        this.physics.add.collider(enemies);
 
        //Set up user input
        cursors = this.input.keyboard.createCursorKeys();
@@ -201,17 +203,25 @@
         {
             if (enemy.body.touching.down) 
             {
-                if (player.x < enemy.x) 
+                if(Math.abs(enemy.x - player.x) <= 200 && Math.abs(enemy.y - player.y) <= 200)
                 {
-                    enemy.setVelocityX(-100);
-                } 
-                else if (player.x > enemy.x) 
+                    if (player.x < enemy.x) 
+                    {
+                        enemy.setVelocityX(-100);
+                    } 
+                    else if (player.x > enemy.x) 
+                    {
+                        enemy.setVelocityX(100);
+                    }
+                }
+                else
                 {
-                    enemy.setVelocityX(100);
+                    enemy.setVelocityX(0);
                 }
             }
         });
-    
+        
+        //live separation to make enemies not stack
         
     }
     function bulletgone(bullet, platform)
@@ -246,8 +256,10 @@
             // Collide enemies with platforms
             this.physics.add.collider(enemy, platforms);
             enemy.setGravityY(3000);
-            
+            enemy.setPushable(true);
+            //enemy.setBounce(1);
         }
+
     }
     function dealDamageToEnemies(bullet, enemy)
     {
