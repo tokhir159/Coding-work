@@ -45,6 +45,7 @@
         
     class Enemy extends Phaser.Physics.Arcade.Sprite 
     {
+        enemyHP = 30;
         constructor(scene, x, y) 
         {
             super(scene, x, y, 'enemy');
@@ -104,6 +105,7 @@
         this.load.image('bullet', 'bullet.png');
         this.load.image('player', 'assets/wabbit.png');
         this.load.image('enemy', 'assets/wabbit.png');
+        this.load.image('platform', 'assets/platform.png');
     }
 
     function create()
@@ -140,6 +142,7 @@
                 bullet.fire(player.x, player.y);
                 this.physics.add.overlap(bullet, collisionplatform, bulletgone, null, this); 
                 // enemies, etc.
+                this.physics.add.overlap(bullet, enemies, dealDamageToEnemies, null, this); 
             }
 
         }, this);
@@ -196,8 +199,19 @@
         // Enemy follow player
         enemies.children.iterate(function (enemy) 
         {
-            this.physics.moveToObject(enemy, player, 100);
-        }, this);
+            if (enemy.body.touching.down) 
+            {
+                if (player.x < enemy.x) 
+                {
+                    enemy.setVelocityX(-100);
+                } 
+                else if (player.x > enemy.x) 
+                {
+                    enemy.setVelocityX(100);
+                }
+            }
+        });
+    
         
     }
     function bulletgone(bullet, platform)
@@ -221,14 +235,29 @@
         }
     }
     
-    function createEnemies(number) {
+    function createEnemies(number) 
+    {
         // Create Enemy
-        for (let i = 0; i < number; i++) {
+        for (let i = 0; i < number; i++) 
+        {
             let enemy = new Enemy(this, Phaser.Math.Between(100, 1100), Phaser.Math.Between(100, 600));
             enemies.add(enemy);
 
             // Collide enemies with platforms
             this.physics.add.collider(enemy, platforms);
+            enemy.setGravityY(3000);
+            
+        }
+    }
+    function dealDamageToEnemies(bullet, enemy)
+    {
+        bullet.disableBody(true,true);
+        console.log("enemy damaged");
+        enemy.enemyHP -= 10;
+        if(enemy.enemyHP <= 0)
+        {
+            enemy.disableBody(true,true);
+            console.log("enemy defeated")
         }
     }
 
