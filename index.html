@@ -57,6 +57,20 @@
             this.setGravityY(3000); 
         }
     }
+        
+    class EnemyShooter extends Phaser.Physics.Arcade.Sprite 
+    {
+        enemyHP = 20;
+        constructor(scene, x, y) 
+        {
+            super(scene, x, y, 'enemy');
+            scene.add.existing(this);
+            scene.physics.add.existing(this);
+            this.setScale(2);
+            this.setCollideWorldBounds(true);
+            this.setGravityY(3000); 
+        }
+    }
 
     class Bullet extends Phaser.Physics.Arcade.Sprite
     {
@@ -127,12 +141,13 @@
         enemies = this.physics.add.group();
 
         // Create Enemies
-        createEnemies.call(this, 10);
+        //createEnemies.call(this, 10);
+        createEnemyShooter.call(this);
         this.physics.add.collider(enemies);
 
-       this.anims.create({key: 'sideEnemy', frames: this.anims.generateFrameNames('sideEnemy', {prefix: 'sideEnemy', end: 4, zeroPad: 2}), repeat: -1, frameRate: 5});
-       let sideEnemy = new Enemy(this, 700, 300, 'sideEnemy', 'sideEnemy');
-       enemies.push(sideEnemy);
+       /*this.anims.create({key: 'sideEnemy', frames: this.anims.generateFrameNames('sideEnemy', {prefix: 'sideEnemy', end: 4, zeroPad: 2}), repeat: -1, frameRate: 5});
+       let sideEnemy = new EnemyAnimation(this, 700, 300, 'sideEnemy', 'sideEnemy');
+       enemies.push(sideEnemy);*/
        //Set up user input
        cursors = this.input.keyboard.createCursorKeys();
        keys = this.input.keyboard.addKeys('A, D');
@@ -266,6 +281,21 @@
         }
 
     }
+        
+    function createEnemyShooter() 
+    {
+        // Create Enemy
+        
+        let enemyShooter = new EnemyShooter(this, 1200, 300);
+
+        // Collide enemies with platforms
+        this.physics.add.collider(enemyShooter, platforms);
+        enemyShooter.setGravityY(3000);
+        enemyShooter.setPushable(true);
+        //enemy.setBounce(1);
+
+    }
+        
     function dealDamageToEnemies(bullet, enemy)
     {
         bullet.disableBody(true,true);
@@ -278,7 +308,7 @@
         }
     }
         
-    class Enemy extends Phaser.Physics.Arcade.Sprite
+    /*class EnemyAnimation extends Enemy
     {
         constructor(scene, x, y, spritesheet, animation) 
         {
@@ -293,7 +323,7 @@
         {
             scene.tweens.add({ targets: this, x: xDist, y: yDist, duration: time, ease: 'Sine.easeInOut', repeat: -1, yoyo: true });
         }
-    }
+    }*/
     
 
     </script>
