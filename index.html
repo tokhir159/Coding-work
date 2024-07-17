@@ -44,17 +44,23 @@
         }
     }
         
-    class Enemy extends Phaser.Physics.Arcade.Sprite 
+    class Enemy extends Phaser.Physics.Arcade.Sprite
     {
         enemyHP = 30;
-        constructor(scene, x, y) 
+        constructor(scene, x, y, spritesheet, animation) 
         {
-            super(scene, x, y, 'enemy');
+            super(scene, x, y, spritesheet, animation);
             scene.add.existing(this);
             scene.physics.add.existing(this);
-            this.setScale(2);
+            this.setScale(0.8);
             this.setCollideWorldBounds(true);
             this.setGravityY(3000); 
+            this.play(animation);
+        }
+
+        addTween(scene, xDist, yDist, time) 
+        {
+            scene.tweens.add({ targets: this, x: xDist, y: yDist, duration: time, ease: 'Sine.easeInOut', repeat: -1, yoyo: true });
         }
     }
         
@@ -71,27 +77,54 @@
             this.setGravityY(3000); 
         }
     }
+    
+    
+    class BatSwing extends Phaser.Physics.Arcade.Sprite
+    {
+        constructor(scene)
+        {
+            super(scene, 0, 0, 'batSwing');
+            scene.add.existing(this)
+            scene.physics.add.existing(this)
+            projectiles.push(this)
+        }
+
+       //swing(x, y) IMPLEMENT LATER ONCE WE HAVE ENEMIES THAT CAN SWING
+    }
+        
 
     class Bullet extends Phaser.Physics.Arcade.Sprite
     {
-        speed = 800; // speed of bullet
-        constructor (scene)
+        constructor (scene, enemyBullet)
         {
             super(scene, 0, 0, 'bullet');
             scene.add.existing(this);
             scene.physics.add.existing(this)
+            if (enemyBullet){
+                projectiles.push(this);
+            }
             //setCollideWorldBounds(true, true, true, true);
             //scene.physics.world.on('worldbounds', function (body, up, down, left, right) { console.log('object left world bounds'); });
 
         }
-
+            
         fire (x, y)
         {
-            this.setPosition(x, y);         // setting to the player's position
-            this.setVelocityX(this.speed);  // moving the bullet
+   	 
+            this.setPosition(x, y);   
+
+            let direction = new Phaser.Math.Vector2(game.input.mousePointer.x - x, game.input.mousePointer.y - y);// saving bullet path as vector
+            direction.normalize(); // normalize so we can add magnitude
+            var speedBullet = 1800;
+            this.setVelocity(direction.x * speedBullet, direction.y * speedBullet); //moves bullet
+
+            var angle = (Phaser.Math.Angle.Between(x, y, game.input.mousePointer.x, game.input.mousePointer.y)*180/(Phaser.Math.PI2/2))
+            this.setAngle(angle) //rotates bullet sprite
+
 
             // if bullet is out of bounds, despawn
-            if (this.x > 1445)
+            //DOESN'T WORK CURRENTLY so all bullets stay spawned, but wont' cause any lag
+            if (x > 1445 || x < 0 || y < 0 || y > 866)
             {
                 console.log("hits bounds");
                 this.disableBody(true, true);
@@ -112,8 +145,8 @@
     //Keyboard controls
     var cursors;
     var keys;
-    var space;
-    //var bullets = [];
+ 
+    var projectiles = new Array();
 
     function preload()
     {
@@ -156,7 +189,7 @@
         this.input.on('pointerdown', function (pointer)
         {
 
-            const bullet = new Bullet(this);
+            const bullet = new Bullet(this, true);
             //bullets.push(bullet);
 
             if (bullet)
@@ -165,6 +198,8 @@
                 this.physics.add.overlap(bullet, collisionplatform, bulletgone, null, this); 
                 // enemies, etc.
                 this.physics.add.overlap(bullet, enemies, dealDamageToEnemies, null, this); 
+                
+                console.log(projectiles.length);
             }
 
         }, this);
@@ -176,6 +211,14 @@
             
 
         });
+        
+       /*const projectileCollider = this.physics.add.overlap(this.player, projectiles, (player, projectiles) =>
+        {
+            playerHP -= 10;
+            //Add here what happens to player when attacked, ex. damage animation
+        }); */
+        
+        
         
         
         
@@ -270,7 +313,7 @@
         // Create Enemy
         for (let i = 0; i < number; i++) 
         {
-            let enemy = new Enemy(this, Phaser.Math.Between(100, 1100), Phaser.Math.Between(100, 600));
+            let enemy = new Enemy(this, Phaser.Math.Between(100, 1100), Phaser.Math.Between(100, 600), 'enemy', 'sideEnemy');
             enemies.add(enemy);
 
             // Collide enemies with platforms
