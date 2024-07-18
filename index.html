@@ -150,12 +150,13 @@
 
     //Game Objects
     var platforms;
+    var platformsLevelTwo;
     var collisionplatform = [];
     var player;
     var sideEnemy;
     var enemies = [];
     var enemyShooters = [];
-    var enemyCount = 12;
+    var enemyCount = 3; //change back
     var gui;
 
     //Keyboard controls
@@ -173,6 +174,7 @@
         this.load.image('player', 'assets/wabbit.png');
         this.load.image('enemy', 'assets/wabbit.png');
         this.load.image('platform', 'assets/platform.png');
+        this.load.image('platform2', 'PLATFORMIMAGE.png');
     }
 
     function create()
@@ -197,7 +199,7 @@
         enemyShooters = this.physics.add.group();
 
         // Create Enemies for level 1
-        createEnemies.call(this, 10);
+        createEnemies.call(this, 1); //change back
         createEnemyShooters.call(this);
         this.physics.add.collider(enemies);
         this.physics.add.collider(enemyShooters);
@@ -265,18 +267,21 @@
         collisionplatform.push(newPlatform);
         console.log(collisionplatform)
     }
-    /*Create level two platforms
+    //Create level two platforms
     function createPlatformsLevelTwo(scene)
     {
         platformsLevelTwo = scene.physics.add.staticGroup();
-
-        //basePlatform is the floor of the game
-        let basePlatformLevelTwo = platforms.create(0, game.scale.height, 'platform');
-        basePlatform.setScale(1000, 1).refreshBody(); //scales the base platform in the x axis to cover the entire floor
-
-        let newPlatformLevelTwo = platforms.create(1090, 650, 'platform'); //creates the upper left platform
-        collisionplatform.push(newPlatform);
+        let basePlatformLevelTwo = platformsLevelTwo.create(0, 810, 'platform2');
+        basePlatformLevelTwo.setScale(1000, 1).refreshBody(); //scales the base platform in the x axis to cover the entire floor
+        let sidePlatform = platformsLevelTwo.create(1090, 550, 'platform2'); //creates the upper left platform
+        collisionplatform.push(sidePlatform);
         console.log(collisionplatform)
+    }
+    
+    //remove previous platforms function
+    /*function removePlatforms()
+    {
+       collisionplatform.each(collisionplatform.remove(platform), )
     }*/
 
     function update()
@@ -433,12 +438,18 @@
     function switchStage()
     {
         //change to level two
-        let background = scene.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background2').setOrigin(0, 0); 
+        let background = scene.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background2').setOrigin(0, 0);
+        /*remove platforms
+        collisionplatform.remove();
+        console.log(collisionplatform.length);*/
+        createPlatformsLevelTwo(scene);
         player = new Player(scene, 400, 400);
+        scene.physics.add.collider(player, platformsLevelTwo);      
+        scene.physics.world.setBoundsCollision(true, true, true, true); 
         // Create enemies group
         enemies2 = scene.physics.add.group();
         enemyShooters2 = scene.physics.add.group();
-
+        
         // Create Enemies for level 1
         createEnemies.call(scene, 10);
         createEnemyShooters.call(scene);
