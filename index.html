@@ -60,66 +60,90 @@
 
        
     }
+        
+    class EnemyShooter extends Phaser.Physics.Arcade.Sprite 
+    {
+        enemyHP = 20;
+        constructor(scene, x, y) 
+        {
+            super(scene, x, y, 'enemy');
+            scene.add.existing(this);
+            scene.physics.add.existing(this);
+            this.setScale(2);
+            this.setCollideWorldBounds(true);
+            this.setGravityY(3000); 
+        }
+    }
     
     
     class BatSwing extends Phaser.Physics.Arcade.Sprite
+    {
+        constructor(scene)
         {
-            constructor(scene)
-            {
-                super(scene, 0, 0, 'batSwing');
-                scene.add.existing(this)
-                scene.physics.add.existing(this)
-                projectiles.push(this)
-            }
-            
-           //swing(x, y) IMPLEMENT LATER ONCE WE HAVE ENEMIES THAT CAN SWING
+            super(scene, 0, 0, 'batSwing');
+            scene.add.existing(this)
+            scene.physics.add.existing(this)
+            projectiles.push(this)
         }
-        
-            
-        
+
+       //swing(x, y) IMPLEMENT LATER ONCE WE HAVE ENEMIES THAT CAN SWING
+    }
         
 
     class Bullet extends Phaser.Physics.Arcade.Sprite
     {
         constructor (scene, enemyBullet)
         {
-                super(scene, 0, 0, 'bullet');
-                scene.add.existing(this);
-                scene.physics.add.existing(this)
-                if (enemyBullet){
-                    projectiles.push(this);
-                }
-                //setCollideWorldBounds(true, true, true, true);
-                //scene.physics.world.on('worldbounds', function (body, up, down, left, right) { console.log('object left world bounds'); });
+            super(scene, 0, 0, 'bullet');
+            scene.add.existing(this);
+            scene.physics.add.existing(this)
+            if (enemyBullet){
+                projectiles.push(this);
+            }
+            //setCollideWorldBounds(true, true, true, true);
+            //scene.physics.world.on('worldbounds', function (body, up, down, left, right) { console.log('object left world bounds'); });
 
         }
             
         fire (x, y)
         {
    	 
-            	this.setPosition(x, y);   
-                
-            	let direction = new Phaser.Math.Vector2(game.input.mousePointer.x - x, game.input.mousePointer.y - y);// saving bullet path as vector
-            	direction.normalize(); // normalize so we can add magnitude
-                var speedBullet = 1800;
-            	this.setVelocity(direction.x * speedBullet, direction.y * speedBullet); //moves bullet
-            	
-            	var angle = (Phaser.Math.Angle.Between(x, y, game.input.mousePointer.x, game.input.mousePointer.y)*180/(Phaser.Math.PI2/2))
-            	this.setAngle(angle) //rotates bullet sprite
-                
+            this.setPosition(x, y);   
 
-            	// if bullet is out of bounds, despawn
-                //DOESN'T WORK CURRENTLY so all bullets stay spawned, but wont' cause any lag
-            	if (x > 1445 || x < 0 || y < 0 || y > 866)
-            	{
-                	console.log("hits bounds");
-                	this.disableBody(true, true);
-            	}
+            let direction = new Phaser.Math.Vector2(game.input.mousePointer.x - x, game.input.mousePointer.y - y);// saving bullet path as vector
+            direction.normalize(); // normalize so we can add magnitude
+            var speedBullet = 1800;
+            this.setVelocity(direction.x * speedBullet, direction.y * speedBullet); //moves bullet
+
+            var angle = (Phaser.Math.Angle.Between(x, y, game.input.mousePointer.x, game.input.mousePointer.y)*180/(Phaser.Math.PI2/2))
+            this.setAngle(angle) //rotates bullet sprite
+
+
+            // if bullet is out of bounds, despawn
+            //DOESN'T WORK CURRENTLY so all bullets stay spawned, but wont' cause any lag
+        }
+        
+        enemyFire (x, y)
+        {
+   	        this.setPosition(x, y);   
+
+            let direction = new Phaser.Math.Vector2(player.x - x, player.y - y);// saving bullet path as vector
+            direction.normalize(); // normalize so we can add magnitude
+            var speedBullet = 1800;
+            this.setVelocity(direction.x * speedBullet, direction.y * speedBullet); //moves bullet
+
+            var angle = (Phaser.Math.Angle.Between(x, y, player.x, player.y)*180/(Phaser.Math.PI2/2))
+            this.setAngle(angle) //rotates bullet sprite
+
+
+            // if bullet is out of bounds, despawn
+            //DOESN'T WORK CURRENTLY so all bullets stay spawned, but wont' cause any lag
         }
     }
         
 
     var game = new Phaser.Game(config);
+    var scene;
 
     //Game Objects
     var platforms;
@@ -127,7 +151,10 @@
     var player;
     var sideEnemy;
     var enemies = [];
-    var scene
+
+    var enemyShooters = [];
+
+
     //Keyboard controls
     var cursors;
     var keys;
@@ -150,30 +177,41 @@
     }
     function create()
     {
+
        //let Animations = {};
        //var enemyMove = this.anims.create({key: 'enemyMove', frames: this.anims.generateFrameNumbers('enemy', {prefix: 'sideEnemy', start: 1, end: 4, zeroPad: 2}), repeat: -1, frameRate: 10})
        //Animations['enemyMove'] = enemyMove;
+
         //Set the background origin to be at (0, 0) or top left corner of the image rather than the center of the image asset
-       let background = this.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background').setOrigin(0, 0);
+       let background = this.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background').setOrigin(0, 0);  
+       scene = this;
 
        //Create the platforms and the player character set to collide with the platforms
        createPlatforms(this);
        player = new Player(this, 400, 400);
+        
        this.physics.add.collider(player, platforms);      
 
        this.physics.world.setBoundsCollision(true, true, true, true); 
         
+        
         // Create enemies group
         enemies = this.physics.add.group();
+        enemyShooters = this.physics.add.group();
 
         // Create Enemies
-       //let sideEnemy = new Enemy(this, 700, 300, 'sideEnemy', 'sideEnemy');
-        createEnemies.call(this, 10);
-        this.physics.add.collider(enemies);
 
-       //enemies.push(sideEnemy);
+        createEnemies.call(this, 10);
+        createEnemyShooters.call(this);
+        this.physics.add.collider(enemies);
+        this.physics.add.collider(enemyShooters);
+
+       /*this.anims.create({key: 'sideEnemy', frames: this.anims.generateFrameNames('sideEnemy', {prefix: 'sideEnemy', end: 4, zeroPad: 2}), repeat: -1, frameRate: 5});
+       let sideEnemy = new EnemyAnimation(this, 700, 300, 'sideEnemy', 'sideEnemy');
+       enemies.push(sideEnemy);*/
        //Set up user input
         
+
        shift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT)
        shift.on('down', test);
         
@@ -181,19 +219,20 @@
        keys = this.input.keyboard.addKeys('A, D');
        space = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
        space.on('down', jump); //calls jump function when space is pressed
+        
         this.input.on('pointerdown', function (pointer)
         {
 
-            const bullet = new Bullet(this, true);
+            const bullet = new Bullet(scene);
             //bullets.push(bullet);
 
             if (bullet)
             {
                 bullet.fire(player.x, player.y);
-                this.physics.add.overlap(bullet, collisionplatform, bulletgone, null, this); 
+                scene.physics.add.overlap(bullet, collisionplatform, bulletgone, null, scene); 
                 // enemies, etc.
-                this.physics.add.overlap(bullet, enemies, dealDamageToEnemies, null, this); 
-                
+                scene.physics.add.overlap(bullet, enemies, dealDamageToEnemies, null, scene); 
+                scene.physics.add.overlap(bullet, enemyShooters, dealDamageToEnemies, null, scene); 
                 console.log(projectiles.length);
             }
 
@@ -207,23 +246,38 @@
 
         });
         
-       const projectileCollider = this.physics.add.overlap(this.player, projectiles, (player, projectiles) =>
+       const projectileCollider = this.physics.add.overlap(player, projectiles, () =>
         {
-            playerHP -= 10;
+            player.playerHP -= 10;
+            console.log("player hit");
             //Add here what happens to player when attacked, ex. damage animation
         });
         
-        
-        
-        
-        
-    }
     /*function createAnims(Animations)
     {
         var enemyMove = this.anims.create({key: 'enemyMove', frames: this.anims.generateFrameNumbers('enemy', {prefix: 'sideEnemy', start: 0, end: 4, zeroPad: 2}), frameRate: 6, repeat: -1})
         Animations['enemyMove'] = enemyMove;
     }*/
+       this.time.addEvent({delay:1000, callback: null, callbackScope: this, loop:true})
+       enemyShooters.children.iterate(function (enemyShooter) 
+        {
+            if(Math.abs(enemyShooter.y - player.y) <= 100)
+            {
+                const bullet = new Bullet(scene, true);
+                //bullets.push(bullet);
 
+                if (bullet)
+                {
+                    //this.time.addEvent({delay:1000, callback: bullet.enemyFire(enemyShooter.x, enemyShooter.y), callbackScope: this, loop:true})
+                    bullet.enemyFire(enemyShooter.x, enemyShooter.y)
+                    scene.physics.add.overlap(bullet, player, bulletgone, null, scene); 
+                    // enemies, etc.
+                    console.log(projectiles.length);
+                }
+            }
+        })
+    }
+    
     function createPlatforms(scene)
     {
         platforms = scene.physics.add.staticGroup();
@@ -231,12 +285,17 @@
         //basePlatform is the floor of the game
         let basePlatform = platforms.create(0, game.scale.height, 'platform');
         basePlatform.setScale(1000, 1).refreshBody(); //scales the base platform in the x axis to cover the entire floor
+        
+        let newPlatform = platforms.create(1000, 650, 'platform')
+        collisionplatform.push(newPlatform)
+        console.log(collisionplatform)
 
         
     }
 
     function update()
     {
+        
         //Player will not move in the x-axis unless a movement key is being pressed
         player.setVelocityX(5);
 
@@ -284,6 +343,16 @@
             }
         });
         
+        // EnemyShooters shoot when player is in FOV
+        
+    
+        //!!!Add bullet disappear function here. Use bullets.children.iterate
+        /*if (bullet.x > 1445 || bullet.x < 0 || bullet.y < 0 || bullet.y > 866)
+        {
+            console.log("hits bounds");
+            this.disableBody(true, true);
+        }*/
+        
         //live separation to make enemies not stack
         
     }
@@ -313,17 +382,34 @@
         // Create Enemy
         for (let i = 0; i < number; i++) 
         {
-            let enemy = new Enemy(this, Phaser.Math.Between(100, 1100), Phaser.Math.Between(100, 600), sideEnemy);
+            let enemy = new Enemy(scene, Phaser.Math.Between(100, 1100), Phaser.Math.Between(100, 600), 'enemy', 'sideEnemy');
             enemies.add(enemy);
 
             // Collide enemies with platforms
-            this.physics.add.collider(enemy, platforms);
+            scene.physics.add.collider(enemy, platforms);
             enemy.setGravityY(3000);
             enemy.setPushable(true);
             //enemy.setBounce(1);
         }
 
     }
+        
+    function createEnemyShooters() 
+    {
+        // Create Enemy
+        
+        let enemyShooter1 = new EnemyShooter(scene, 1200, 300);
+        enemyShooters.add(enemyShooter1);
+        scene.physics.add.collider(enemyShooter1, platforms);
+        enemyShooter1.setGravityY(3000);
+        enemyShooter1.setPushable(true);
+        let enemyShooter2 = new EnemyShooter(scene, 1100, 300);
+        enemyShooters.add(enemyShooter2);
+        scene.physics.add.collider(enemyShooter2, platforms);
+        enemyShooter2.setGravityY(3000);
+        enemyShooter2.setPushable(true);
+    }
+        
     function dealDamageToEnemies(bullet, enemy)
     {
         bullet.disableBody(true,true);
@@ -336,6 +422,23 @@
         }
     }
         
+    /*class EnemyAnimation extends Enemy
+    {
+        constructor(scene, x, y, spritesheet, animation) 
+        {
+            super(scene, x, y, spritesheet, animation);
+            scene.add.existing(this);
+            scene.physics.add.existing(this);
+            this.setScale(0.8);
+            this.play(animation);
+        }
+
+        addTween(scene, xDist, yDist, time) 
+        {
+            scene.tweens.add({ targets: this, x: xDist, y: yDist, duration: time, ease: 'Sine.easeInOut', repeat: -1, yoyo: true });
+        }
+    }*/
+    
 
     </script>
 
