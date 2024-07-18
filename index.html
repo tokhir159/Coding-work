@@ -155,6 +155,7 @@
     var sideEnemy;
     var enemies = [];
     var enemyShooters = [];
+    var enemyCount = 12;
 
     //Keyboard controls
     var cursors;
@@ -308,7 +309,7 @@
         // EnemyShooters shoot when player is in FOV
         enemyShooters.children.iterate(function (enemyShooter) 
         {
-            if(Math.abs(enemyShooter.y - player.y) <= 100)
+            if(Math.abs(enemyShooter.y - player.y) <= 100 && Math.abs(enemyShooter.x - player.x) <= 600 && enemyShooter.body.touching.down)
             {
                 const bullet = new Bullet(scene, true);
                 //bullets.push(bullet);
@@ -322,7 +323,8 @@
                 }
             }
         });
-    
+        //check in update function when an enemy is defeated 
+        //checkIfAllEnemiesAreDead.call();
         //!!!Add bullet disappear function here. Use bullets.children.iterate
         /*if (bullet.x > 1445 || bullet.x < 0 || bullet.y < 0 || bullet.y > 866)
         {
@@ -395,10 +397,22 @@
         if(enemy.enemyHP <= 0)
         {
             enemy.disableBody(true,true);
-            console.log("enemy defeated")
+            enemyCount--;
+            //remove enemy from enemyShooters group
+            enemyShooters.remove(enemy, true, true);
+            console.log("enemy defeated");
+            if(enemyCount == 0)
+            {
+                console.log("All enemies defeated");
+                switchStage.call();
+            }
         }
     }
+    
+    function switchStage()
+    {
         
+    }
     /*class EnemyAnimation extends Enemy
     {
         constructor(scene, x, y, spritesheet, animation) 
