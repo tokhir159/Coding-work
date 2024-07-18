@@ -167,6 +167,7 @@
     function preload()
     {
         this.load.image('background', 'FIRSTLEVEL.png');
+        this.load.image('background2', 'SECONDLEVEL.png');
         this.load.image('bullet', 'bullet.png');
         this.load.atlas('sideEnemy', 'sideEnemy.png', 'sideEnemy.json');
         this.load.image('player', 'assets/wabbit.png');
@@ -264,6 +265,19 @@
         collisionplatform.push(newPlatform);
         console.log(collisionplatform)
     }
+    /*Create level two platforms
+    function createPlatformsLevelTwo(scene)
+    {
+        platformsLevelTwo = scene.physics.add.staticGroup();
+
+        //basePlatform is the floor of the game
+        let basePlatformLevelTwo = platforms.create(0, game.scale.height, 'platform');
+        basePlatform.setScale(1000, 1).refreshBody(); //scales the base platform in the x axis to cover the entire floor
+
+        let newPlatformLevelTwo = platforms.create(1090, 650, 'platform'); //creates the upper left platform
+        collisionplatform.push(newPlatform);
+        console.log(collisionplatform)
+    }*/
 
     function update()
     {
@@ -418,6 +432,9 @@
     
     function switchStage()
     {
+        //change to level two
+        let background = scene.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background2').setOrigin(0, 0); 
+        player = new Player(scene, 400, 400);
         // Create enemies group
         enemies2 = scene.physics.add.group();
         enemyShooters2 = scene.physics.add.group();
