@@ -156,6 +156,7 @@
     var enemies = [];
     var enemyShooters = [];
     var enemyCount = 12;
+    var gui;
 
     //Keyboard controls
     var cursors;
@@ -179,6 +180,7 @@
         //Set the background origin to be at (0, 0) or top left corner of the image rather than the center of the image asset
        let background = this.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background').setOrigin(0, 0);  
        scene = this;
+       gui = this.add.text(16, 16, '', {fontSize: '64px', fill: '#000'});
 
        //Create the platforms and the player character set to collide with the platforms
        createPlatforms(this);
@@ -193,7 +195,7 @@
         enemies = this.physics.add.group();
         enemyShooters = this.physics.add.group();
 
-        // Create Enemies
+        // Create Enemies for level 1
         createEnemies.call(this, 10);
         createEnemyShooters.call(this);
         this.physics.add.collider(enemies);
@@ -240,6 +242,11 @@
         {
             player.playerHP -= 10;
             console.log("player hit");
+            if(player.playerHP <= 0)
+            {
+                gui.setText("YOU DIED");
+                //switch to end screen or pause game
+            }
             //Add here what happens to player when attacked, ex. damage animation
         });
         
@@ -411,7 +418,15 @@
     
     function switchStage()
     {
-        
+        // Create enemies group
+        enemies2 = scene.physics.add.group();
+        enemyShooters2 = scene.physics.add.group();
+
+        // Create Enemies for level 1
+        createEnemies.call(scene, 10);
+        createEnemyShooters.call(scene);
+        scene.physics.add.collider(enemies);
+        scene.physics.add.collider(enemyShooters);
     }
     /*class EnemyAnimation extends Enemy
     {
