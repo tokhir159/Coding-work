@@ -249,6 +249,7 @@
             if(player.playerHP <= 0)
             {
                 gui.setText("YOU DIED");
+                player.disablebody(true, false);
                 //switch to end screen or pause game
             }
             //Add here what happens to player when attacked, ex. damage animation
