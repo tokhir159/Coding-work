@@ -156,7 +156,7 @@
     var sideEnemy;
     var enemies = [];
     var enemyShooters = [];
-    var enemyCount = 3; //change back
+    var enemyCount = 5; //change back
     var gui;
 
     //Keyboard controls
@@ -187,7 +187,7 @@
 
        //Create the platforms and the player character set to collide with the platforms
        createPlatforms(this);
-       player = new Player(this, 400, 400);
+       player = new Player(this, 100, 400);
         
        this.physics.add.collider(player, platforms);      
 
@@ -199,8 +199,9 @@
         enemyShooters = this.physics.add.group();
 
         // Create Enemies for level 1
-        createEnemies.call(this, 1); //change back
-        createEnemyShooters.call(this);
+        createEnemies.call(this, 5, platforms); //change back
+        createEnemyShooter.call(this, 1200, 300, platforms);
+        createEnemyShooter.call(this, 1100, 300, platforms);
         this.physics.add.collider(enemies);
         this.physics.add.collider(enemyShooters);
 
@@ -273,7 +274,10 @@
         platformsLevelTwo = scene.physics.add.staticGroup();
         let basePlatformLevelTwo = platformsLevelTwo.create(0, 810, 'platform2');
         basePlatformLevelTwo.setScale(1000, 1).refreshBody(); //scales the base platform in the x axis to cover the entire floor
-        let sidePlatform = platformsLevelTwo.create(1090, 550, 'platform2'); //creates the upper left platform
+        let sidePlatform = platformsLevelTwo.create(1200, 550, 'platform2'); //creates the upper left platform
+        sidePlatform.setScale(2, 1).refreshBody(); 
+        let sidePlatform2 = platformsLevelTwo.create(453, 420, 'platform2'); //creates the upper left platform
+        sidePlatform2.setScale(0.55, 1).refreshBody(); 
         collisionplatform.push(sidePlatform);
         console.log(collisionplatform)
     }
@@ -382,16 +386,16 @@
         }
     }
     
-    function createEnemies(number) 
+    function createEnemies(number, collision) 
     {
         // Create Enemy
         for (let i = 0; i < number; i++) 
         {
-            let enemy = new Enemy(scene, Phaser.Math.Between(100, 1100), Phaser.Math.Between(100, 600), 'enemy', 'sideEnemy');
+            let enemy = new Enemy(scene, Phaser.Math.Between(500, 1100), Phaser.Math.Between(700, 1000), 'enemy', 'sideEnemy');
             enemies.add(enemy);
 
             // Collide enemies with platforms
-            scene.physics.add.collider(enemy, platforms);
+            scene.physics.add.collider(enemy, collision);
             enemy.setGravityY(3000);
             enemy.setPushable(true);
             //enemy.setBounce(1);
@@ -399,20 +403,15 @@
 
     }
         
-    function createEnemyShooters() 
+    function createEnemyShooter(x, y, collision) 
     {
         // Create Enemy
         
-        let enemyShooter1 = new EnemyShooter(scene, 1200, 300);
-        enemyShooters.add(enemyShooter1);
-        scene.physics.add.collider(enemyShooter1, platforms);
-        enemyShooter1.setGravityY(3000);
-        enemyShooter1.setPushable(true);
-        let enemyShooter2 = new EnemyShooter(scene, 1100, 300);
-        enemyShooters.add(enemyShooter2);
-        scene.physics.add.collider(enemyShooter2, platforms);
-        enemyShooter2.setGravityY(3000);
-        enemyShooter2.setPushable(true);
+        let enemyShooter = new EnemyShooter(scene, x, y);
+        enemyShooters.add(enemyShooter);
+        scene.physics.add.collider(enemyShooter, collision);
+        enemyShooter.setGravityY(3000);
+        enemyShooter.setPushable(true);
     }
         
     function dealDamageToEnemies(bullet, enemy)
@@ -450,9 +449,11 @@
         enemies2 = scene.physics.add.group();
         enemyShooters2 = scene.physics.add.group();
         
-        // Create Enemies for level 1
-        createEnemies.call(scene, 10);
-        createEnemyShooters.call(scene);
+        // Create Enemies for level 2
+        createEnemies.call(scene, 1, platformsLevelTwo);
+        createEnemyShooter.call(scene, 1200, 300, platformsLevelTwo);
+        createEnemyShooter.call(scene, 950, 300, platformsLevelTwo);
+        createEnemyShooter.call(scene, 453, 200, platformsLevelTwo);
         scene.physics.add.collider(enemies);
         scene.physics.add.collider(enemyShooters);
     }
