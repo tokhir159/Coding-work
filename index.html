@@ -47,6 +47,7 @@
     class Enemy extends Phaser.Physics.Arcade.Sprite
     {
         enemyHP = 30;
+        bounceTime = 0;
         constructor(scene, x, y, spritesheet, animation) 
         {
             super(scene, x, y, spritesheet, animation);
@@ -243,7 +244,7 @@
 
         });
         setupProjectileCollision(this);
-       
+        scene.physics.add.overlap(enemies, player, dealDamageToPlayer, null, scene); 
         
     }
         
@@ -277,7 +278,7 @@
     {
         projectileCollider = scene.physics.add.overlap(player, projectiles, () => 
         {
-            player.playerHP -= 10; // Decrease player health by 10
+            player.playerHP -= 15; // Decrease player health by 10
             console.log("player hit");
             if (player.playerHP <= 0) 
             {
@@ -295,7 +296,7 @@
        collisionplatform.each(collisionplatform.remove(platform), )
     }*/
 
-    function update()
+    function update(time, delta)
     {
         
         //Player will not move in the x-axis unless a movement key is being pressed
@@ -325,6 +326,10 @@
         {
             if (enemy.body.touching.down) 
             {
+                if(enemy.bounceCooldown > 0)
+                {
+                    enemy.bounceCooldown -= delta;
+                }
                 if(Math.abs(enemy.x - player.x) <= 200 && Math.abs(enemy.y - player.y) <= 200)
                 {
                     if (player.x < enemy.x) 
@@ -440,6 +445,29 @@
             }
         }
     }
+        
+    function dealDamageToPlayer(player, enemy)
+    {
+        player.playerHP -= 10;
+        if (enemy.x < player.x) 
+        {
+            enemy.setVelocityX(-300);  // Bounce to the left
+        } 
+        else 
+        {
+            enemy.setVelocityX(300);   // Bounce to the right
+        }
+    
+        // Set bounce cooldown
+        enemy.bounceCooldown = 500; // Time in milliseconds
+        console.log("player hit");
+        if (player.playerHP <= 0) 
+        {
+            gui.setText("YOU DIED");
+            player.disableBody(true, false);
+            // Switch to end screen or pause game
+        }
+    }
     
     function switchStage()
     {
@@ -465,6 +493,7 @@
         scene.physics.add.collider(enemies);
         scene.physics.add.collider(enemyShooters);
         setupProjectileCollision(scene);
+        scene.physics.add.overlap(enemies, player, dealDamageToPlayer, null, scene); 
     }
     /*class EnemyAnimation extends Enemy
     {
