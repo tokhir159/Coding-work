@@ -22,7 +22,7 @@
 
         scene: {
             preload: preload,
-            create: create,
+            create: create,,
             update: update,
         }
 
@@ -38,7 +38,7 @@
             super(scene, x, y, 'player');
             scene.add.existing(this);
             scene.physics.add.existing(this);
-            this.setScale(2);
+            this.setScale(1);
             this.setCollideWorldBounds(true);
             this.setGravityY(3000); //We will set gravity *per object* rather than for the scene!
         }
@@ -56,7 +56,7 @@
             scene.add.existing(this);
             scene.physics.add.existing(this);
 
-            this.setScale(1.5);
+            this.setScale(1);
 
             this.setCollideWorldBounds(true);
             this.setGravityY(3000); 
@@ -74,7 +74,7 @@
             super(scene, x, y, 'enemy');
             scene.add.existing(this);
             scene.physics.add.existing(this);
-            this.setScale(2);
+            this.setScale(1);
             this.setCollideWorldBounds(true);
             this.setGravityY(3000);
             
@@ -219,13 +219,15 @@
     function preload()
     {
         this.load.image('background', 'FIRSTLEVEL.png');
-        this.load.image('background2', 'SECONDLEVEL.png');
+        this.load.image('background2', 'SECOND LEVEL.png');
         this.load.image('bullet', 'bullet.png');
         //this.load.atlas('sideEnemy', 'sideEnemy.png', 'sideEnemy.json');
-        this.load.image('player', 'assets/wabbit.png');
-        this.load.image('enemy', 'assets/wabbit.png');
+        //this.load.image('player', 'assets/wabbit.png');
+        this.load.image('player', 'stillMainPlayer.png');
+        //this.load.image('enemy', 'assets/wabbit.png');
+        this.load.image('enemy', 'stillSideEnemy.png');
         this.load.image('platform', 'assets/platform.png');
-        this.load.image('platform2', 'PLATFORMIMAGE.png');
+        this.load.image('platform2', 'PLATFORM IMAGE.png');
     }
     
     function create()
@@ -300,15 +302,9 @@
             
 
         });
-<<<<<<< HEAD
-        setupProjectileCollision(this);
-        //scene.physics.add.overlap(enemies, player, dealDamageToPlayer, null, scene); 
-=======
 
         setupProjectileCollision(dashing, this);
         scene.physics.add.overlap(enemies, player, dealDamageToPlayer, null, scene); 
-
->>>>>>> d33d0cf150321276d71d47eebc8f7ed8fa23f2c9
         
     /*function createAnims(Animations)
     {
