@@ -203,6 +203,7 @@
     var projectileCollider;
     var switchedStage = false;
     var gui;
+    var guiHealth;
 
 
     //Keyboard controls
@@ -239,6 +240,7 @@
        let background = this.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background').setOrigin(0, 0);  
        scene = this;
        gui = this.add.text(16, 16, '', {fontSize: '64px', fill: '#000'});
+        guiHealth = this.add.text(16, 32, '', {fontSize: '64px', fill: '#000'});
 
        //Create the platforms and the player character set to collide with the platforms
        createPlatforms(this);
@@ -300,15 +302,10 @@
             
 
         });
-<<<<<<< HEAD
+
         setupProjectileCollision(this);
         //scene.physics.add.overlap(enemies, player, dealDamageToPlayer, null, scene); 
-=======
 
-        setupProjectileCollision(dashing, this);
-        scene.physics.add.overlap(enemies, player, dealDamageToPlayer, null, scene); 
-
->>>>>>> d33d0cf150321276d71d47eebc8f7ed8fa23f2c9
         
     /*function createAnims(Animations)
     {
@@ -348,12 +345,12 @@
             
             projectileCollider.active = false;
             console.log("collision is off")
-            scene.time.delayedCall(300, () =>
+            /*scene.time.delayedCall(300, () =>
             {   
                 projectileCollider.active = true;
                 console.log("collision is back on")
                 dashing = false;
-            });
+            });*/
         }
     function createPlatforms(scene)
     {
@@ -383,14 +380,14 @@
         console.log(collisionplatform)
     }
     
-    function setupProjectileCollision(dashing, scene) 
+    function setupProjectileCollision(scene) 
     {
-        if(!(dashing))
-        {
+        //if(!(dashing))
+        //{
         projectileCollider = scene.physics.add.overlap(player, projectiles, () => 
         {
             player.playerHP -= 15; // Decrease player health by 10
-            console.log("player hit");
+            console.log("player shot");
             if (player.playerHP <= 0) 
             {
                 gui.setText("YOU DIED");
@@ -399,7 +396,7 @@
             }
             // Add here what happens to player when attacked, ex. damage animation
         });
-        }
+        //}
     }
 
     //remove previous platforms function
@@ -530,6 +527,12 @@
         bullet.disableBody(true,true);
         console.log("bullet hit")
     }
+        
+    function updateHealth()
+    {
+        guiHealth.setText(player.playerHP);
+    }
+        
     function jump(event)
     {
         if (player.body.touching.down) 
@@ -610,20 +613,21 @@
         }
     }
         
-    function dealDamageToPlayer(player, enemy)
+    /*function dealDamageToPlayer(player, enemy)
     {
         player.playerHP -= 10;
-    
+        
         // Set bounce cooldown
         enemy.bounceCooldown = 500; // Time in milliseconds
         console.log("player hit");
+        console.log(player.playerHP);
         if (player.playerHP <= 0) 
         {
             gui.setText("YOU DIED");
             player.disableBody(true, false);
             // Switch to end screen or pause game
         }
-    }
+    }*/
     
     function switchStage()
     {
@@ -650,7 +654,7 @@
         scene.physics.add.collider(enemies);
         scene.physics.add.collider(enemyShooters);
         setupProjectileCollision(scene);
-        scene.physics.add.overlap(enemies, player, dealDamageToPlayer, null, scene); 
+        //scene.physics.add.overlap(enemies, player, dealDamageToPlayer, null, scene); 
     }
     /*class EnemyAnimation extends Enemy
     {
