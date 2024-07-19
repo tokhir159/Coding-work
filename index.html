@@ -193,7 +193,8 @@
 
     var enemyShooters = [];
 
-        
+    var damageTaking = false;
+    
     var facingRight;
         
     let background
@@ -207,6 +208,7 @@
     var switchedStage = false;
 
     var gui;
+    var guiHealth;
 
 
     //Keyboard controls
@@ -242,11 +244,15 @@
         //Set the background origin to be at (0, 0) or top left corner of the image rather than the center of the image asset
        background = this.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background').setOrigin(0, 0);  
        scene = this;
-       gui = this.add.text(200, 600, '', {fontSize: '64px', fill: '#000'});
+
+       gui = this.add.text(16, 80, '', {fontSize: '64px', fill: '#000'});
+       guiHealth = this.add.text(16, 16, '', {fontSize: '64px', fill: '#000'});
+
 
        //Create the platforms and the player character set to collide with the platforms
        createPlatforms(this);
        player = new Player(this, 100, 400);
+       updateHealth.call(this);
         
        this.physics.add.collider(player, platforms);      
 
@@ -307,7 +313,7 @@
             
 
         });
-
+        
         setupProjectileCollision(this);
         //scene.physics.add.overlap(enemies, player, dealDamageToPlayer, null, scene); 
 
@@ -392,8 +398,31 @@
         
         projectileCollider = this.scene.physics.add.overlap(player, projectiles, () => 
         {
-            player.playerHP -= 15; // Decrease player health by 10
-            console.log("player hit");
+             
+            console.log("Is he taking damage: "+damageTaking)
+            updateHealth.call(this);
+            if (!(damageTaking))
+            {
+                
+                damageTaking = true;
+                player.playerHP -= 15; // Decrease player health by 15  
+                console.log("player hit");
+                updateHealth.call(this);
+                
+            }
+            else
+            {
+                scene.time.delayedCall(400, ()=>
+                    {
+                        damageTaking = false;
+                        //no way bro thats insane
+                    })   
+            }
+            
+            
+            
+            
+            //console.log("player hit");
             if (player.playerHP <= 0) 
             {
                 gui.setText("YOU DIED");
@@ -401,7 +430,8 @@
                 // Switch to end screen or pause game
             }
             // Add here what happens to player when attacked, ex. damage animation
-        });
+        })
+        
         
     }
 
@@ -524,6 +554,13 @@
         bullet.disableBody(true,true);
         console.log("bullet hit")
     }
+        
+    function updateHealth(scene)
+    {
+        var HP = player.playerHP;
+        guiHealth.setText(HP);
+    }
+    
     function jump(event)
     {
         if (player.body.touching.down) 
@@ -635,13 +672,15 @@
     {
         //change to level two
         background = scene.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background2').setOrigin(0, 0);
-        gui = scene.add.text(16, 16, '', {fontSize: '64px', fill: '#000'});
+        gui = scene.add.text(16, 80, '', {fontSize: '64px', fill: '#000'});
+        guiHealth = scene.add.text(16, 16, '', {fontSize: '64px', fill: '#000'});
         switchedStage = true;
         /*remove platforms
         collisionplatform.remove();
         console.log(collisionplatform.length);*/
         createPlatformsLevelTwo(scene);
         player = new Player(scene, 100, 400);
+        updateHealth.call(this);
         scene.physics.add.collider(player, platformsLevelTwo);      
         scene.physics.world.setBoundsCollision(true, true, true, true); 
         // Create enemies group
