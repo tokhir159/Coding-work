@@ -47,7 +47,7 @@
     class Enemy extends Phaser.Physics.Arcade.Sprite
     {
         enemyHP = 30;
-        constructor(scene, x, y, spritesheet, animation) 
+        constructor(scene, x, y, spritesheet, enemyAnimation) 
 
         {
             super(scene, x, y, 'enemy')
@@ -242,7 +242,7 @@
         //Set the background origin to be at (0, 0) or top left corner of the image rather than the center of the image asset
        background = this.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background').setOrigin(0, 0);  
        scene = this;
-       gui = this.add.text(16, 16, '', {fontSize: '64px', fill: '#000'});
+       gui = this.add.text(200, 600, '', {fontSize: '64px', fill: '#000'});
 
        //Create the platforms and the player character set to collide with the platforms
        createPlatforms(this);
@@ -453,13 +453,13 @@
                 {
                     if (player.x < enemy.x)                    {
                         enemy.setVelocityX(-100);
-                        enemy.play(enemy.animations['enemyMove'], true)
+                        //enemy.play(enemy.animations['enemyMove'], true)
                     } 
                     else if (player.x > enemy.x) 
                     {
                         enemy.setVelocityX(100);
                         
-                        enemy.play(enemy.animations['enemyMove'], true)
+                        //enemy.play(enemy.animations['enemyMove'], true)
                     }
                 }
                 else
@@ -485,7 +485,7 @@
                     console.log(projectiles.length);
                     
                     scene.time.addEvent
-                    ({delay:1000,
+                    ({delay:700,
                     callback: ()=>
                     {
                             console.log("reset fire")
