@@ -326,10 +326,30 @@
         {
             if (enemy.body.touching.down) 
             {
-                if(enemy.bounceCooldown > 0)
+                if (Math.abs(player.x - enemy.x) < 80 && Math.abs(player.y - enemy.y) < 80) 
                 {
-                    enemy.bounceCooldown -= delta;
-                }
+                    if (enemy.x < player.x) 
+                    {
+                        enemy.setVelocityX(-300);  // Bounce to the left
+                        player.setVelocityX(1000);
+                    } 
+                    else 
+                    {
+                        enemy.setVelocityX(300);   // Bounce to the right
+                        player.setVelocityX(-1000);
+                    }
+                    if (enemy.y < player.y) 
+                    {
+                        enemy.setVelocityY(-300);  // Bounce to the left
+                        player.setVelocityY(1000);
+                    } 
+                    else 
+                    {
+                        enemy.setVelocityY(300);   // Bounce to the right
+                        player.setVelocityY(-1000);
+                    }
+                } 
+                
                 if(Math.abs(enemy.x - player.x) <= 200 && Math.abs(enemy.y - player.y) <= 200)
                 {
                     if (player.x < enemy.x) 
@@ -437,6 +457,7 @@
             enemyCount--;
             //remove enemy from enemyShooters group
             enemyShooters.remove(enemy, true, true);
+            enemies.remove(enemy, true, true);
             console.log("enemy defeated");
             if(enemyCount == 0)
             {
@@ -449,14 +470,6 @@
     function dealDamageToPlayer(player, enemy)
     {
         player.playerHP -= 10;
-        if (enemy.x < player.x) 
-        {
-            enemy.setVelocityX(-300);  // Bounce to the left
-        } 
-        else 
-        {
-            enemy.setVelocityX(300);   // Bounce to the right
-        }
     
         // Set bounce cooldown
         enemy.bounceCooldown = 500; // Time in milliseconds
