@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 
 <html>
 
@@ -64,6 +64,7 @@
     class EnemyShooter extends Phaser.Physics.Arcade.Sprite 
     {
         enemyHP = 20;
+        hasFired = false;
         constructor(scene, x, y) 
         {
             super(scene, x, y, 'enemy');
@@ -71,7 +72,54 @@
             scene.physics.add.existing(this);
             this.setScale(2);
             this.setCollideWorldBounds(true);
-            this.setGravityY(3000); 
+            this.setGravityY(3000);
+            
+            
+        }
+        
+        getHasFired ()
+        {
+            return (this.hasFired)
+        }
+        
+        resetHasFired ()
+        {
+            this.hasFired = false
+        }
+        
+        enemyFire (x, y)
+        {
+            var bullet = new Bullet(scene, true)
+            this.hasFired = true;
+            projectiles.push(bullet)
+            bullet.setPosition(x, y);   
+
+            let direction = new Phaser.Math.Vector2(player.x - x, player.y - y);// saving bullet path as vector
+            direction.normalize(); // normalize so we can add magnitude
+            var speedBullet = 1800;
+            bullet.setVelocity(direction.x * speedBullet, direction.y * speedBullet); //moves bullet
+
+            var angle = (Phaser.Math.Angle.Between(x, y, player.x, player.y)*180/(Phaser.Math.PI2/2))
+            bullet.setAngle(angle) //rotates bullet sprite
+            if (this.hasFired == true)
+            {
+            scene.time.addEvent({
+                callback: ()=>
+                {
+                    if ((bullet.x > 1445 || bullet.x < 0 || bullet.y > 866 || bullet.y < 0) && (this.hasFired == true))
+                    {
+                        console.log("WENT OUT OF BOUNDS")
+                        bullet.setActive(false)
+                        bullet.setVisible(false)
+                        bullet.disableBody(true, true)
+                        this.hasFired = false;
+                    }
+                },
+                loop: false
+            })
+            }
+            return bullet
+        
         }
     }
     
@@ -97,12 +145,10 @@
             super(scene, 0, 0, 'bullet');
             scene.add.existing(this);
             scene.physics.add.existing(this)
-            if (enemyBullet){
-                projectiles.push(this);
-            }
+            
+            var bullets = 0;
             //setCollideWorldBounds(true, true, true, true);
             //scene.physics.world.on('worldbounds', function (body, up, down, left, right) { console.log('object left world bounds'); });
-
         }
             
         fire (x, y)
@@ -122,23 +168,12 @@
             // if bullet is out of bounds, despawn
             //DOESN'T WORK CURRENTLY so all bullets stay spawned, but wont' cause any lag
         }
-        
-        enemyFire (x, y)
+        getBullets ()
         {
-   	        this.setPosition(x, y);   
-
-            let direction = new Phaser.Math.Vector2(player.x - x, player.y - y);// saving bullet path as vector
-            direction.normalize(); // normalize so we can add magnitude
-            var speedBullet = 1800;
-            this.setVelocity(direction.x * speedBullet, direction.y * speedBullet); //moves bullet
-
-            var angle = (Phaser.Math.Angle.Between(x, y, player.x, player.y)*180/(Phaser.Math.PI2/2))
-            this.setAngle(angle) //rotates bullet sprite
-
-
-            // if bullet is out of bounds, despawn
-            //DOESN'T WORK CURRENTLY so all bullets stay spawned, but wont' cause any lag
+            return this.bullets
         }
+        
+        
     }
         
 
@@ -153,11 +188,18 @@
     var enemies = [];
 
     var enemyShooters = [];
+    var enemyCount = 12;
+        
+    var facingRight;
 
 
     //Keyboard controls
     var cursors;
     var keys;
+        
+    var projectileCollider
+    
+    var dashing = false
         
     
  
@@ -172,9 +214,7 @@
         this.load.image('enemy', 'assets/wabbit.png');
         this.load.image('platform', 'assets/platform.png');
     }
-    function test(){
-        console.log("shift pressed")
-    }
+    
     function create()
     {
 
@@ -201,7 +241,7 @@
 
         // Create Enemies
 
-        createEnemies.call(this, 10);
+        createEnemies.call(this, 1);
         createEnemyShooters.call(this);
         this.physics.add.collider(enemies);
         this.physics.add.collider(enemyShooters);
@@ -225,18 +265,17 @@
 
             const bullet = new Bullet(scene);
             //bullets.push(bullet);
+                if (bullet)
+                {
+                    bullet.fire(player.x, player.y);
+                    scene.physics.add.overlap(bullet, collisionplatform, bulletgone, null, scene); 
+                    // enemies, etc.
+                    scene.physics.add.overlap(bullet, enemies, dealDamageToEnemies, null, scene); 
+                    scene.physics.add.overlap(bullet, enemyShooters, dealDamageToEnemies, null, scene); 
+                    console.log(projectiles.length);
+                }
 
-            if (bullet)
-            {
-                bullet.fire(player.x, player.y);
-                scene.physics.add.overlap(bullet, collisionplatform, bulletgone, null, scene); 
-                // enemies, etc.
-                scene.physics.add.overlap(bullet, enemies, dealDamageToEnemies, null, scene); 
-                scene.physics.add.overlap(bullet, enemyShooters, dealDamageToEnemies, null, scene); 
-                console.log(projectiles.length);
-            }
-
-        }, this);
+            }, this);
         
         this.bullets = this.add.group({
             classType: Bullet,
@@ -246,7 +285,7 @@
 
         });
         
-       const projectileCollider = this.physics.add.overlap(player, projectiles, () =>
+       projectileCollider = this.physics.add.overlap(player, projectiles, () =>
         {
             player.playerHP -= 10;
             console.log("player hit");
@@ -258,26 +297,45 @@
         var enemyMove = this.anims.create({key: 'enemyMove', frames: this.anims.generateFrameNumbers('enemy', {prefix: 'sideEnemy', start: 0, end: 4, zeroPad: 2}), frameRate: 6, repeat: -1})
         Animations['enemyMove'] = enemyMove;
     }*/
-       this.time.addEvent({delay:1000, callback: null, callbackScope: this, loop:true})
-       enemyShooters.children.iterate(function (enemyShooter) 
-        {
-            if(Math.abs(enemyShooter.y - player.y) <= 100)
-            {
-                const bullet = new Bullet(scene, true);
-                //bullets.push(bullet);
-
-                if (bullet)
-                {
-                    //this.time.addEvent({delay:1000, callback: bullet.enemyFire(enemyShooter.x, enemyShooter.y), callbackScope: this, loop:true})
-                    bullet.enemyFire(enemyShooter.x, enemyShooter.y)
-                    scene.physics.add.overlap(bullet, player, bulletgone, null, scene); 
-                    // enemies, etc.
-                    console.log(projectiles.length);
-                }
-            }
-        })
+       
     }
-    
+    function test()
+        {
+            
+            /*let Pdirection = new Phaser.Math.Vector2(8000 - player.x, 1);
+            Pdirection.normalize(); 
+            var speedP = 2000;
+            this.setVelocity(Pdirection.x * speedP, Pdirection.y * speedP); */
+            dashing = true;
+            var speedP = 1000;
+            
+            console.log("facing right is "+facingRight)
+            console.log("shift pressed")
+            
+            if (facingRight)
+            {
+                //player.setVelocity(8000,1)
+                let Pdirection = new Phaser.Math.Vector2(8000 - player.x, 1);
+                Pdirection.normalize(); 
+                player.setVelocity(Pdirection.x * speedP, Pdirection.y * speedP); 
+            }
+            if (!(facingRight))
+            {
+                //player.setVelocity(-8000,1)
+                let Pdirection = new Phaser.Math.Vector2(-8000 - player.x, 1);
+                Pdirection.normalize(); 
+                player.setVelocity(Pdirection.x * speedP, Pdirection.y * speedP); 
+            }
+            
+                projectileCollider.active = false;
+                console.log("collision is off")
+                scene.time.delayedCall(300, () =>
+                {   
+                    projectileCollider.active = true;
+                    console.log("collision is back on")
+                    dashing = false;
+                });
+        }
     function createPlatforms(scene)
     {
         platforms = scene.physics.add.staticGroup();
@@ -296,21 +354,25 @@
     function update()
     {
         
+        
         //Player will not move in the x-axis unless a movement key is being pressed
+        if (!(dashing))
         player.setVelocityX(5);
 
         //Player has "drag" on the x-axis meaning they slide a bit after an input
-        player.setDragX(1000);
+        player.setDragX(2000);
 
         //Handle player movements
-        if (cursors.left.isDown || keys.A.isDown)
+        if ((cursors.left.isDown || keys.A.isDown) && (!(dashing)))
         {
-            player.setVelocityX(-400);
+            player.setVelocityX(-325);
+            facingRight = false;
         }
 
-        if (cursors.right.isDown || keys.D.isDown)
+        if ((cursors.right.isDown || keys.D.isDown) && (!(dashing)))
         {
-            player.setVelocityX(400);
+            player.setVelocityX(325);
+            facingRight = true;
         }
         
         if (player.body.touching.down) 
@@ -343,9 +405,44 @@
             }
         });
         
+
+       enemyShooters.children.iterate(function (enemyShooter) 
+        {
+            if(Math.abs(enemyShooter.y - player.y) <= 100 && Math.abs(enemyShooter.x - player.x) <= 500)
+            {
+                
+                //bullets.push(bullet); 
+                console.log(enemyShooter.getHasFired())
+                if (!(enemyShooter.getHasFired()))
+                {
+                    console.log('enemy has not shot yet')
+                    enemyBullet = enemyShooter.enemyFire(enemyShooter.x, enemyShooter.y)
+                    
+                    scene.time.addEvent
+                    ({delay:1000,
+                    callback: ()=>
+                    {
+                            console.log("reset fire")
+                            enemyShooter.resetHasFired();
+                    },
+                    loop: false
+                    })
+                        
+                    
+                }
+                    //scene.physics.add.overlap(enemyBullet, player, bulletgone, null, scene); 
+                    //scene.physics.add.overlap(enemyBullet, collisionplatform, bulletgone, null, scene); 
+                
+                // enemies, etc.
+                
+            }
+        })
+        
         // EnemyShooters shoot when player is in FOV
         
-    
+        //check in update function when an enemy is defeated 
+        //checkIfAllEnemiesAreDead.call();
+        //
         //!!!Add bullet disappear function here. Use bullets.children.iterate
         /*if (bullet.x > 1445 || bullet.x < 0 || bullet.y < 0 || bullet.y > 866)
         {
@@ -403,11 +500,11 @@
         scene.physics.add.collider(enemyShooter1, platforms);
         enemyShooter1.setGravityY(3000);
         enemyShooter1.setPushable(true);
-        let enemyShooter2 = new EnemyShooter(scene, 1100, 300);
-        enemyShooters.add(enemyShooter2);
-        scene.physics.add.collider(enemyShooter2, platforms);
-        enemyShooter2.setGravityY(3000);
-        enemyShooter2.setPushable(true);
+        //let enemyShooter2 = new EnemyShooter(scene, 1100, 300);
+        //enemyShooters.add(enemyShooter2);
+        //scene.physics.add.collider(enemyShooter2, platforms);
+        //enemyShooter2.setGravityY(3000);
+        //enemyShooter2.setPushable(true);
     }
         
     function dealDamageToEnemies(bullet, enemy)
@@ -418,10 +515,22 @@
         if(enemy.enemyHP <= 0)
         {
             enemy.disableBody(true,true);
-            console.log("enemy defeated")
+            enemyCount--;
+            //remove enemy from enemyShooters group
+            enemyShooters.remove(enemy, true, true);
+            console.log("enemy defeated");
+            if(enemyCount == 0)
+            {
+                console.log("All enemies defeated");
+                switchStage.call();
+            }
         }
     }
+    
+    function switchStage()
+    {
         
+    }
     /*class EnemyAnimation extends Enemy
     {
         constructor(scene, x, y, spritesheet, animation) 
