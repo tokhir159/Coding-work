@@ -30,7 +30,7 @@
 
     class Player extends Phaser.Physics.Arcade.Sprite
     {
-        totalJumps = 2;
+        totalJumps = 10;
         currentJumps = 0;
         playerHP = 100;
         constructor(scene, x, y)
@@ -47,7 +47,6 @@
     class Enemy extends Phaser.Physics.Arcade.Sprite
     {
         enemyHP = 30;
-        bounceTime = 0;
         constructor(scene, x, y, spritesheet, animation) 
 
         {
@@ -196,13 +195,19 @@
 
         
     var facingRight;
+        
+    let background
 
 
     var enemyCount = 5; //change back
-    var enemyCount2 = 6; 
-    var projectileCollider;
+
+    let projectileCollider;
+
+    var enemyCount2 = 6;
     var switchedStage = false;
+
     var gui;
+    var guiHealth;
 
 
     //Keyboard controls
@@ -213,7 +218,7 @@
     var dashing = false;
         
     
- 
+    //var lvlSwitch = false;
     var projectiles = new Array();
 
     function preload()
@@ -221,30 +226,34 @@
         this.load.image('background', 'FIRSTLEVEL.png');
         this.load.image('background2', 'SECOND LEVEL.png');
         this.load.image('bullet', 'bullet.png');
-        //this.load.atlas('sideEnemy', 'sideEnemy.png', 'sideEnemy.json');
+
+        this.load.atlas('sideEnemy', 'sideEnemy.png', 'sideEnemy.json');
         //this.load.image('player', 'assets/wabbit.png');
         this.load.image('player', 'stillMainPlayer.png');
         //this.load.image('enemy', 'assets/wabbit.png');
         this.load.image('enemy', 'stillSideEnemy.png');
         this.load.image('platform', 'assets/platform.png');
         this.load.image('platform2', 'PLATFORM IMAGE.png');
+
     }
     
     function create()
     {
 
-       //let Animations = {};
-       //var enemyMove = this.anims.create({key: 'enemyMove', frames: this.anims.generateFrameNumbers('enemy', {prefix: 'sideEnemy', start: 1, end: 4, zeroPad: 2}), repeat: -1, frameRate: 10})
-       //Animations['enemyMove'] = enemyMove;
+       let Animations = {};
+       var enemyMove = this.anims.create({key: 'enemyMove', frames: this.anims.generateFrameNumbers('enemy', {prefix: 'sideEnemy', start: 1, end: 4, zeroPad: 2}), repeat: -1, frameRate: 10})
+       Animations['enemyMove'] = enemyMove;
 
         //Set the background origin to be at (0, 0) or top left corner of the image rather than the center of the image asset
-       let background = this.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background').setOrigin(0, 0);  
+       background = this.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background').setOrigin(0, 0);  
        scene = this;
-       gui = this.add.text(16, 16, '', {fontSize: '64px', fill: '#000'});
+       gui = this.add.text(16, 80, '', {fontSize: '64px', fill: '#000'});
+       guiHealth = this.add.text(16, 16, '', {fontSize: '64px', fill: '#000'});
 
        //Create the platforms and the player character set to collide with the platforms
        createPlatforms(this);
        player = new Player(this, 100, 400);
+       updateHealth.call(this);
         
        this.physics.add.collider(player, platforms);      
 
@@ -285,7 +294,10 @@
             //bullets.push(bullet);
                 if (bullet)
                 {
-                    bullet.fire(player.x, player.y);
+                    var currentX = player.x
+                    var currentY = player.y
+                    bullet.fire(currentX, currentY);
+                    console.log(currentX + " " + currentY + player.x + player.y)
                     scene.physics.add.overlap(bullet, collisionplatform, bulletgone, null, scene); 
                     // enemies, etc.
                     scene.physics.add.overlap(bullet, enemies, dealDamageToEnemies, null, scene); 
@@ -305,7 +317,10 @@
 
         setupProjectileCollision(dashing, this);
         scene.physics.add.overlap(enemies, player, dealDamageToPlayer, null, scene); 
-        
+
+        //setupProjectileCollision(this);
+        //scene.physics.add.overlap(enemies, player, dealDamageToPlayer, null, scene); 
+ 
     /*function createAnims(Animations)
     {
         var enemyMove = this.anims.create({key: 'enemyMove', frames: this.anims.generateFrameNumbers('enemy', {prefix: 'sideEnemy', start: 0, end: 4, zeroPad: 2}), frameRate: 6, repeat: -1})
@@ -343,6 +358,7 @@
             }
             
             projectileCollider.active = false;
+            dashing = true;
             console.log("collision is off")
             scene.time.delayedCall(300, () =>
             {   
@@ -379,13 +395,14 @@
         console.log(collisionplatform)
     }
     
-    function setupProjectileCollision(dashing, scene) 
+    function setupProjectileCollision(scene) 
     {
-        if(!(dashing))
-        {
-        projectileCollider = scene.physics.add.overlap(player, projectiles, () => 
+        
+        
+        projectileCollider = this.scene.physics.add.overlap(player, projectiles, () => 
         {
             player.playerHP -= 15; // Decrease player health by 10
+            updateHealth.call(this);
             console.log("player hit");
             if (player.playerHP <= 0) 
             {
@@ -395,7 +412,7 @@
             }
             // Add here what happens to player when attacked, ex. damage animation
         });
-        }
+        
     }
 
     //remove previous platforms function
@@ -407,10 +424,13 @@
     function update(time, delta)
     {
         
+       
         
         //Player will not move in the x-axis unless a movement key is being pressed
         if (!(dashing))
+        {
         player.setVelocityX(5);
+        }
 
         //Player has "drag" on the x-axis meaning they slide a bit after an input
         player.setDragX(2000);
@@ -438,21 +458,7 @@
         {
             if (enemy.body.touching.down) 
             {
-                if (Math.abs(player.x - enemy.x) < 75 && Math.abs(player.y - enemy.y) < 80) 
-                {
-                    if (enemy.x < player.x) 
-                    {
-                        enemy.setVelocityX(-300);  // Bounce to the left
-                        player.setVelocityX(1000, -1200);
-                    } 
-                    else 
-                    {
-                        enemy.setVelocityX(300);   // Bounce to the right
-                        player.setVelocity(-1000, -1200);
-                    }
-                    //dealDamageToPlayer(player, enemy);
-                } 
-                
+
                 if(Math.abs(enemy.x - player.x) <= 200 && Math.abs(enemy.y - player.y) <= 200)
                 {
                     if (player.x < enemy.x)                    {
@@ -471,6 +477,7 @@
                     enemy.setVelocityX(0);
                 }
             }
+            
         });
         
 
@@ -485,6 +492,7 @@
                 {
                     console.log('enemy has not shot yet')
                     enemyBullet = enemyShooter.enemyFire(enemyShooter.x, enemyShooter.y)
+                    console.log(projectiles.length);
                     
                     scene.time.addEvent
                     ({delay:1000,
@@ -526,6 +534,13 @@
         bullet.disableBody(true,true);
         console.log("bullet hit")
     }
+        
+    function updateHealth(scene)
+    {
+        var HP = player.playerHP;
+        guiHealth.setText(HP);
+    }
+    
     function jump(event)
     {
         if (player.body.touching.down) 
@@ -555,7 +570,7 @@
             scene.physics.add.collider(enemy, collision);
             enemy.setGravityY(3000);
             enemy.setPushable(true);
-            //enemy.setBounce(1);
+            
         }
 
     }
@@ -596,6 +611,7 @@
             if(enemyCount == 0 && switchedStage == false)
             {
                 console.log("All enemies defeated");
+                //lvlSwitch = true
                 switchStage.call();
             }
             if(enemyCount2 == 0)
@@ -609,7 +625,16 @@
     function dealDamageToPlayer(player, enemy)
     {
         player.playerHP -= 10;
-    
+
+        if (enemy.x < player.x) 
+        {
+            enemy.setVelocityX(-300);  // Bounce to the left
+        } 
+        else 
+        {
+            enemy.setVelocityX(300);   // Bounce to the right
+        }
+
         // Set bounce cooldown
         enemy.bounceCooldown = 500; // Time in milliseconds
         console.log("player hit");
@@ -624,14 +649,16 @@
     function switchStage()
     {
         //change to level two
-        let background = scene.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background2').setOrigin(0, 0);
-        gui = scene.add.text(16, 16, '', {fontSize: '64px', fill: '#000'});
+        background = scene.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background2').setOrigin(0, 0);
+        gui = scene.add.text(16, 80, '', {fontSize: '64px', fill: '#000'});
+        guiHealth = scene.add.text(16, 16, '', {fontSize: '64px', fill: '#000'});
         switchedStage = true;
         /*remove platforms
         collisionplatform.remove();
         console.log(collisionplatform.length);*/
         createPlatformsLevelTwo(scene);
         player = new Player(scene, 100, 400);
+        updateHealth.call(this);
         scene.physics.add.collider(player, platformsLevelTwo);      
         scene.physics.world.setBoundsCollision(true, true, true, true); 
         // Create enemies group
@@ -646,7 +673,21 @@
         scene.physics.add.collider(enemies);
         scene.physics.add.collider(enemyShooters);
         setupProjectileCollision(scene);
-        scene.physics.add.overlap(enemies, player, dealDamageToPlayer, null, scene); 
+        
+        
+            const bullet = new Bullet(scene);
+            //bullets.push(bullet);
+                if (bullet)
+                {
+                    var currentX = player.x
+                    var currentY = player.y
+                    bullet.fire(currentX, currentY);
+                    console.log(currentX + " " + currentY + player.x + player.y)
+                    scene.physics.add.overlap(bullet, collisionplatform, bulletgone, null, scene); 
+                    // enemies, etc.
+                     
+                    console.log(projectiles.length);
+                }
     }
     /*class EnemyAnimation extends Enemy
     {
