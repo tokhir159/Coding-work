@@ -52,7 +52,7 @@
             super(scene, x, y, spritesheet, animation);
             scene.add.existing(this);
             scene.physics.add.existing(this);
-            this.setScale(0.8);
+            this.setScale(1.5);
             this.setCollideWorldBounds(true);
             this.setGravityY(3000); 
             this.play(animation);
@@ -157,6 +157,7 @@
     var enemies = [];
     var enemyShooters = [];
     var enemyCount = 5; //change back
+    var projectileCollider;
     var gui;
 
     //Keyboard controls
@@ -200,8 +201,8 @@
 
         // Create Enemies for level 1
         createEnemies.call(this, 5, platforms); //change back
-        createEnemyShooter.call(this, 1200, 300, platforms);
-        createEnemyShooter.call(this, 1100, 300, platforms);
+        //createEnemyShooter.call(this, 1200, 300, platforms);
+        //createEnemyShooter.call(this, 1100, 300, platforms);
         this.physics.add.collider(enemies);
         this.physics.add.collider(enemyShooters);
 
@@ -241,19 +242,8 @@
             
 
         });
-        
-       const projectileCollider = this.physics.add.overlap(player, projectiles, () =>
-        {
-            player.playerHP -= 10;
-            console.log("player hit");
-            if(player.playerHP <= 0)
-            {
-                gui.setText("YOU DIED");
-                player.disableBody(true, false);
-                //switch to end screen or pause game
-            }
-            //Add here what happens to player when attacked, ex. damage animation
-        });
+        setupProjectileCollision(this);
+       
         
     }
         
@@ -283,6 +273,22 @@
         console.log(collisionplatform)
     }
     
+    function setupProjectileCollision(scene) 
+    {
+        projectileCollider = scene.physics.add.overlap(player, projectiles, () => 
+        {
+            player.playerHP -= 10; // Decrease player health by 10
+            console.log("player hit");
+            if (player.playerHP <= 0) 
+            {
+                gui.setText("YOU DIED");
+                player.disableBody(true, false);
+                // Switch to end screen or pause game
+            }
+            // Add here what happens to player when attacked, ex. damage animation
+        });
+    }
+
     //remove previous platforms function
     /*function removePlatforms()
     {
@@ -392,7 +398,7 @@
         // Create Enemy
         for (let i = 0; i < number; i++) 
         {
-            let enemy = new Enemy(scene, Phaser.Math.Between(500, 1100), Phaser.Math.Between(700, 1000), 'enemy', 'sideEnemy');
+            let enemy = new Enemy(scene, Phaser.Math.Between(500, 1100), Phaser.Math.Between(700, 800), 'enemy', 'sideEnemy');
             enemies.add(enemy);
 
             // Collide enemies with platforms
@@ -439,6 +445,7 @@
     {
         //change to level two
         let background = scene.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background2').setOrigin(0, 0);
+        gui = scene.add.text(16, 16, '', {fontSize: '64px', fill: '#000'});
         /*remove platforms
         collisionplatform.remove();
         console.log(collisionplatform.length);*/
@@ -457,6 +464,7 @@
         createEnemyShooter.call(scene, 453, 200, platformsLevelTwo);
         scene.physics.add.collider(enemies);
         scene.physics.add.collider(enemyShooters);
+        setupProjectileCollision(scene);
     }
     /*class EnemyAnimation extends Enemy
     {
