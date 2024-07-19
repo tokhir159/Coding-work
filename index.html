@@ -38,7 +38,7 @@
             super(scene, x, y, 'player');
             scene.add.existing(this);
             scene.physics.add.existing(this);
-            this.setScale(2);
+            this.setScale(1);
             this.setCollideWorldBounds(true);
             this.setGravityY(3000); //We will set gravity *per object* rather than for the scene!
         }
@@ -55,7 +55,7 @@
             scene.add.existing(this);
             scene.physics.add.existing(this);
 
-            this.setScale(1.5);
+            this.setScale(1);
 
             this.setCollideWorldBounds(true);
             this.setGravityY(3000); 
@@ -73,7 +73,7 @@
             super(scene, x, y, 'enemy');
             scene.add.existing(this);
             scene.physics.add.existing(this);
-            this.setScale(2);
+            this.setScale(1);
             this.setCollideWorldBounds(true);
             this.setGravityY(3000);
             
@@ -227,11 +227,15 @@
         this.load.image('background', 'FIRSTLEVEL.png');
         this.load.image('background2', 'SECOND LEVEL.png');
         this.load.image('bullet', 'bullet.png');
+
         this.load.atlas('sideEnemy', 'sideEnemy.png', 'sideEnemy.json');
-        this.load.image('player', 'assets/wabbit.png');
-        this.load.image('enemy', 'assets/wabbit.png');
+        //this.load.image('player', 'assets/wabbit.png');
+        this.load.image('player', 'stillMainPlayer.png');
+        //this.load.image('enemy', 'assets/wabbit.png');
+        this.load.image('enemy', 'stillSideEnemy.png');
         this.load.image('platform', 'assets/platform.png');
-        this.load.image('platform2', 'PLATFORM IMAGE.png')
+        this.load.image('platform2', 'PLATFORM IMAGE.png');
+
     }
     
     function create()
@@ -313,11 +317,14 @@
             
 
         });
-        
+
         setupProjectileCollision(this);
         //scene.physics.add.overlap(enemies, player, dealDamageToPlayer, null, scene); 
 
-        
+
+        //setupProjectileCollision(this);
+        //scene.physics.add.overlap(enemies, player, dealDamageToPlayer, null, scene); 
+ 
     /*function createAnims(Animations)
     {
         var enemyMove = this.anims.create({key: 'enemyMove', frames: this.anims.generateFrameNumbers('enemy', {prefix: 'sideEnemy', start: 0, end: 4, zeroPad: 2}), frameRate: 6, repeat: -1})
@@ -642,10 +649,10 @@
         }
     }
         
-    /*function dealDamageToPlayer(player, enemy)
+    function dealDamageToPlayer(player, enemy)
     {
         player.playerHP -= 10;
-<<<<<<< HEAD
+
         if (enemy.x < player.x) 
         {
             enemy.setVelocityX(-300);  // Bounce to the left
@@ -654,11 +661,9 @@
         {
             enemy.setVelocityX(300);   // Bounce to the right
         }
-=======
-    
+
         // Set bounce cooldown
         enemy.bounceCooldown = 500; // Time in milliseconds
->>>>>>> af09ddba147801a3c3658ad276f765503cd0c5b7
         console.log("player hit");
         if (player.playerHP <= 0) 
         {
@@ -666,7 +671,7 @@
             player.disableBody(true, false);
             // Switch to end screen or pause game
         }
-    }*/
+    }
     
     function switchStage()
     {
