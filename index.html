@@ -30,7 +30,7 @@
 
     class Player extends Phaser.Physics.Arcade.Sprite
     {
-        totalJumps = 2;
+        totalJumps = 10;
         currentJumps = 0;
         playerHP = 100;
         constructor(scene, x, y)
@@ -47,7 +47,6 @@
     class Enemy extends Phaser.Physics.Arcade.Sprite
     {
         enemyHP = 30;
-        bounceTime = 0;
         constructor(scene, x, y, spritesheet, animation) 
 
         {
@@ -196,10 +195,12 @@
 
         
     var facingRight;
+        
+    let background
 
 
     var enemyCount = 5; //change back
-    var projectileCollider;
+    let projectileCollider;
     var gui;
 
 
@@ -211,19 +212,19 @@
     var dashing = false;
         
     
- 
+    //var lvlSwitch = false;
     var projectiles = new Array();
 
     function preload()
     {
         this.load.image('background', 'FIRSTLEVEL.png');
-        this.load.image('background2', 'SECONDLEVEL.png');
+        this.load.image('background2', 'SECOND LEVEL.png');
         this.load.image('bullet', 'bullet.png');
         //this.load.atlas('sideEnemy', 'sideEnemy.png', 'sideEnemy.json');
         this.load.image('player', 'assets/wabbit.png');
         this.load.image('enemy', 'assets/wabbit.png');
         this.load.image('platform', 'assets/platform.png');
-        this.load.image('platform2', 'PLATFORMIMAGE.png');
+        this.load.image('platform2', 'PLATFORM IMAGE.png')
     }
     
     function create()
@@ -234,7 +235,7 @@
        //Animations['enemyMove'] = enemyMove;
 
         //Set the background origin to be at (0, 0) or top left corner of the image rather than the center of the image asset
-       let background = this.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background').setOrigin(0, 0);  
+       background = this.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background').setOrigin(0, 0);  
        scene = this;
        gui = this.add.text(16, 16, '', {fontSize: '64px', fill: '#000'});
 
@@ -281,7 +282,10 @@
             //bullets.push(bullet);
                 if (bullet)
                 {
-                    bullet.fire(player.x, player.y);
+                    var currentX = player.x
+                    var currentY = player.y
+                    bullet.fire(currentX, currentY);
+                    console.log(currentX + " " + currentY + player.x + player.y)
                     scene.physics.add.overlap(bullet, collisionplatform, bulletgone, null, scene); 
                     // enemies, etc.
                     scene.physics.add.overlap(bullet, enemies, dealDamageToEnemies, null, scene); 
@@ -300,7 +304,8 @@
         });
 
         setupProjectileCollision(dashing, this);
-        scene.physics.add.overlap(enemies, player, dealDamageToPlayer, null, scene); 
+        //this.time.addEvent()
+       
 
         
     /*function createAnims(Animations)
@@ -340,6 +345,7 @@
             }
             
             projectileCollider.active = false;
+            dashing = true;
             console.log("collision is off")
             scene.time.delayedCall(300, () =>
             {   
@@ -378,9 +384,9 @@
     
     function setupProjectileCollision(dashing, scene) 
     {
-        if(!(dashing))
-        {
-        projectileCollider = scene.physics.add.overlap(player, projectiles, () => 
+        console.log("dashing is "+dashing)
+        
+        projectileCollider = this.scene.physics.add.overlap(player, projectiles, () => 
         {
             player.playerHP -= 15; // Decrease player health by 10
             console.log("player hit");
@@ -392,7 +398,7 @@
             }
             // Add here what happens to player when attacked, ex. damage animation
         });
-        }
+        
     }
 
     //remove previous platforms function
@@ -404,10 +410,13 @@
     function update(time, delta)
     {
         
+       
         
         //Player will not move in the x-axis unless a movement key is being pressed
         if (!(dashing))
+        {
         player.setVelocityX(5);
+        }
 
         //Player has "drag" on the x-axis meaning they slide a bit after an input
         player.setDragX(2000);
@@ -435,10 +444,7 @@
         {
             if (enemy.body.touching.down) 
             {
-                if(enemy.bounceCooldown > 0)
-                {
-                    enemy.bounceCooldown -= delta;
-                }
+
                 if(Math.abs(enemy.x - player.x) <= 200 && Math.abs(enemy.y - player.y) <= 200)
                 {
                     if (player.x < enemy.x)                    {
@@ -457,6 +463,7 @@
                     enemy.setVelocityX(0);
                 }
             }
+            
         });
         
 
@@ -471,6 +478,7 @@
                 {
                     console.log('enemy has not shot yet')
                     enemyBullet = enemyShooter.enemyFire(enemyShooter.x, enemyShooter.y)
+                    console.log(projectiles.length);
                     
                     scene.time.addEvent
                     ({delay:1000,
@@ -541,7 +549,7 @@
             scene.physics.add.collider(enemy, collision);
             enemy.setGravityY(3000);
             enemy.setPushable(true);
-            //enemy.setBounce(1);
+            
         }
 
     }
@@ -573,12 +581,13 @@
             if(enemyCount == 0)
             {
                 console.log("All enemies defeated");
+                //lvlSwitch = true
                 switchStage.call();
             }
         }
     }
         
-    function dealDamageToPlayer(player, enemy)
+    /*function dealDamageToPlayer(player, enemy)
     {
         player.playerHP -= 10;
         if (enemy.x < player.x) 
@@ -589,9 +598,6 @@
         {
             enemy.setVelocityX(300);   // Bounce to the right
         }
-    
-        // Set bounce cooldown
-        enemy.bounceCooldown = 500; // Time in milliseconds
         console.log("player hit");
         if (player.playerHP <= 0) 
         {
@@ -599,12 +605,12 @@
             player.disableBody(true, false);
             // Switch to end screen or pause game
         }
-    }
+    }*/
     
     function switchStage()
     {
         //change to level two
-        let background = scene.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background2').setOrigin(0, 0);
+        background = scene.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background2').setOrigin(0, 0);
         gui = scene.add.text(16, 16, '', {fontSize: '64px', fill: '#000'});
         /*remove platforms
         collisionplatform.remove();
@@ -625,7 +631,21 @@
         scene.physics.add.collider(enemies);
         scene.physics.add.collider(enemyShooters);
         setupProjectileCollision(scene);
-        scene.physics.add.overlap(enemies, player, dealDamageToPlayer, null, scene); 
+        
+        
+            const bullet = new Bullet(scene);
+            //bullets.push(bullet);
+                if (bullet)
+                {
+                    var currentX = player.x
+                    var currentY = player.y
+                    bullet.fire(currentX, currentY);
+                    console.log(currentX + " " + currentY + player.x + player.y)
+                    scene.physics.add.overlap(bullet, collisionplatform, bulletgone, null, scene); 
+                    // enemies, etc.
+                     
+                    console.log(projectiles.length);
+                }
     }
     /*class EnemyAnimation extends Enemy
     {
