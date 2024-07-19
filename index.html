@@ -200,7 +200,12 @@
 
 
     var enemyCount = 5; //change back
+
     let projectileCollider;
+
+    var enemyCount2 = 6;
+    var switchedStage = false;
+
     var gui;
 
 
@@ -220,7 +225,7 @@
         this.load.image('background', 'FIRSTLEVEL.png');
         this.load.image('background2', 'SECOND LEVEL.png');
         this.load.image('bullet', 'bullet.png');
-        //this.load.atlas('sideEnemy', 'sideEnemy.png', 'sideEnemy.json');
+        this.load.atlas('sideEnemy', 'sideEnemy.png', 'sideEnemy.json');
         this.load.image('player', 'assets/wabbit.png');
         this.load.image('enemy', 'assets/wabbit.png');
         this.load.image('platform', 'assets/platform.png');
@@ -230,9 +235,9 @@
     function create()
     {
 
-       //let Animations = {};
-       //var enemyMove = this.anims.create({key: 'enemyMove', frames: this.anims.generateFrameNumbers('enemy', {prefix: 'sideEnemy', start: 1, end: 4, zeroPad: 2}), repeat: -1, frameRate: 10})
-       //Animations['enemyMove'] = enemyMove;
+       let Animations = {};
+       var enemyMove = this.anims.create({key: 'enemyMove', frames: this.anims.generateFrameNumbers('enemy', {prefix: 'sideEnemy', start: 1, end: 4, zeroPad: 2}), repeat: -1, frameRate: 10})
+       Animations['enemyMove'] = enemyMove;
 
         //Set the background origin to be at (0, 0) or top left corner of the image rather than the center of the image asset
        background = this.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background').setOrigin(0, 0);  
@@ -303,9 +308,8 @@
 
         });
 
-        setupProjectileCollision(dashing, this);
-        //this.time.addEvent()
-       
+        setupProjectileCollision(this);
+        //scene.physics.add.overlap(enemies, player, dealDamageToPlayer, null, scene); 
 
         
     /*function createAnims(Animations)
@@ -382,9 +386,9 @@
         console.log(collisionplatform)
     }
     
-    function setupProjectileCollision(dashing, scene) 
+    function setupProjectileCollision(scene) 
     {
-        console.log("dashing is "+dashing)
+        
         
         projectileCollider = this.scene.physics.add.overlap(player, projectiles, () => 
         {
@@ -449,13 +453,13 @@
                 {
                     if (player.x < enemy.x)                    {
                         enemy.setVelocityX(-100);
-                        //enemy.play(enemy.animations['enemyMove'], true)
+                        enemy.play(enemy.animations['enemyMove'], true)
                     } 
                     else if (player.x > enemy.x) 
                     {
                         enemy.setVelocityX(100);
                         
-                        //enemy.play(enemy.animations['enemyMove'], true)
+                        enemy.play(enemy.animations['enemyMove'], true)
                     }
                 }
                 else
@@ -541,7 +545,7 @@
         // Create Enemy
         for (let i = 0; i < number; i++) 
         {
-            let enemy = new Enemy(scene, Phaser.Math.Between(500, 1100), Phaser.Math.Between(700, 800), 'enemy', 'sideEnemy');
+            let enemy = new Enemy(scene, Phaser.Math.Between(500, 1100), Phaser.Math.Between(700, 720), 'enemy', 'sideEnemy');
             enemies.add(enemy);
             projectiles.push(enemy)
 
@@ -574,15 +578,29 @@
         if(enemy.enemyHP <= 0)
         {
             enemy.disableBody(true,true);
-            enemyCount--;
+            if(switchedStage)
+            {
+                enemyCount2--;   
+            }
+            else
+            {
+                enemyCount--;
+            }
+            //enemyCount--;
             //remove enemy from enemyShooters group
             enemyShooters.remove(enemy, true, true);
+            enemies.remove(enemy, true, true);
             console.log("enemy defeated");
-            if(enemyCount == 0)
+            if(enemyCount == 0 && switchedStage == false)
             {
                 console.log("All enemies defeated");
                 //lvlSwitch = true
                 switchStage.call();
+            }
+            if(enemyCount2 == 0)
+            {
+                gui.setText("YOU WIN");
+                player.disableBody(true, false);
             }
         }
     }
@@ -590,6 +608,7 @@
     /*function dealDamageToPlayer(player, enemy)
     {
         player.playerHP -= 10;
+<<<<<<< HEAD
         if (enemy.x < player.x) 
         {
             enemy.setVelocityX(-300);  // Bounce to the left
@@ -598,6 +617,11 @@
         {
             enemy.setVelocityX(300);   // Bounce to the right
         }
+=======
+    
+        // Set bounce cooldown
+        enemy.bounceCooldown = 500; // Time in milliseconds
+>>>>>>> af09ddba147801a3c3658ad276f765503cd0c5b7
         console.log("player hit");
         if (player.playerHP <= 0) 
         {
@@ -612,11 +636,12 @@
         //change to level two
         background = scene.add.tileSprite(0, 0, game.scale.width, game.scale.height, 'background2').setOrigin(0, 0);
         gui = scene.add.text(16, 16, '', {fontSize: '64px', fill: '#000'});
+        switchedStage = true;
         /*remove platforms
         collisionplatform.remove();
         console.log(collisionplatform.length);*/
         createPlatformsLevelTwo(scene);
-        player = new Player(scene, 400, 400);
+        player = new Player(scene, 100, 400);
         scene.physics.add.collider(player, platformsLevelTwo);      
         scene.physics.world.setBoundsCollision(true, true, true, true); 
         // Create enemies group
@@ -624,7 +649,7 @@
         enemyShooters2 = scene.physics.add.group();
         
         // Create Enemies for level 2
-        createEnemies.call(scene, 1, platformsLevelTwo);
+        createEnemies.call(scene, 3, platformsLevelTwo);
         createEnemyShooter.call(scene, 1200, 300, platformsLevelTwo);
         createEnemyShooter.call(scene, 950, 300, platformsLevelTwo);
         createEnemyShooter.call(scene, 453, 200, platformsLevelTwo);
